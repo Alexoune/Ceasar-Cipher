@@ -8,7 +8,7 @@ var player;
 var moves = [];
 
 // Clones
-const cloneLimit = 1;
+const cloneLimit = 3;
 const cloneLateFactor = 3;
 var clone;
 var cloneGroup;
@@ -52,14 +52,31 @@ var moving = false;
 
 // Level
 var layer;
+let tile;
 
-function drawArrow(graphics, x1, y1, x2, y2) {
-  graphics.lineStyle(4, 0xff0000, 1);
-  graphics.lineBetween(x1, y1, x2, y2);
+// Visuel
+let g;
+
+function drawArrow(g, x1, y1, x2, y2, headLength = 10) {
+  g.lineBetween(x1, y1, x2, y2);
+
+  const angle = Math.atan2(y2 - y1, x2 - x1);
+
+  const leftX  = x2 - headLength * Math.cos(angle - Math.PI / 5);
+  const leftY  = y2 - headLength * Math.sin(angle - Math.PI / 5);
+  const rightX = x2 - headLength * Math.cos(angle + Math.PI / 5);
+  const rightY = y2 - headLength * Math.sin(angle + Math.PI / 5);
+
+  g.lineBetween(x2, y2, rightX, rightY);
+  g.lineBetween(x2, y2, leftX, leftY);
+
 }
 
 function pushMoveFromVelocity(vx, vy) {
-  if(vx == 0 && vy == 0) return;
+  if(vx == 0 && vy == 0) {
+    moves.push(null);
+    return;
+  }
 
   directionMap.forEach(d => {
     if(d.check({ vx, vy })) moves.push(d.dir);
@@ -67,26 +84,27 @@ function pushMoveFromVelocity(vx, vy) {
 }
 
 function moveClonesFromInput() {
-  cloneGroup.children.each(function (clone) {
-    let i = moves[clone.stepCount];
-    let vd = directionMap[i].vd;
+  cloneGroup.children.each(function (clone) {    
+    if (clone.i != null) {
+      let vd = directionMap[clone.i].vd;
 
-    [clone.vx, clone.vy] = [vd[0]*v, 
+      [clone.vx, clone.vy] = [vd[0]*v, 
                             vd[1]*v];
 
-    [clone.mapX, clone.mapY] = [clone.mapX + vd[0], 
+      [clone.mapX, clone.mapY] = [clone.mapX + vd[0], 
                                 clone.mapY + vd[1]];
+
+      clone.setVelocity(clone.vx, clone.vy);
+    }
 
     clone.stepCount += 1;
 
-    clone.setVelocity(clone.vx, clone.vy);
   });
 }
 
 function stopClonesFromMoving() {
   cloneGroup.children.each(function (clone) {
-    clone.vx = 0;
-    clone.vy = 0;
+    [clone.vx, clone.vy] = [0, 0];
     clone.setVelocity(clone.vx, clone.vy);
 
     clone.setPosition(
@@ -94,10 +112,22 @@ function stopClonesFromMoving() {
       MAP_OFFSET + clone.mapY*TILE_LENGTH
     );
 
-    clone.nextMapX = clone.mapX + directionMap[moves[clone.stepCount]].vd[0];
-    clone.nextMapY = clone.mapY + directionMap[moves[clone.stepCount]].vd[1];
-    //console.log(clone.nextMapX, clone.nextMapY);
-    });
+    clone.i = moves[clone.stepCount];
+
+    if (clone.i != null) {
+      clone.nextMapX = clone.mapX + directionMap[clone.i].vd[0];
+      clone.nextMapY = clone.mapY + directionMap[clone.i].vd[1];
+
+      let x1 = clone.mapX*TILE_LENGTH + MAP_OFFSET;
+      let y1 = clone.mapY*TILE_LENGTH + MAP_OFFSET;
+      let x2 = clone.nextMapX*TILE_LENGTH + MAP_OFFSET;
+      let y2 = clone.nextMapY*TILE_LENGTH + MAP_OFFSET;
+      drawArrow(g, x1, y1, x2, y2);
+    
+    }
+
+  });
+
 }
 
 function spawnClone() {
@@ -116,7 +146,8 @@ function spawnClone() {
     mapY: startY,
     stepCount: 0,
     nextMapX: 0,
-    nextMapY: 0
+    nextMapY: 0,
+    i: 0,
   });
 
   clone.setScale(2);
@@ -133,16 +164,16 @@ function whileMoving(time) {
     player.setVelocity(vx,vy);
 
     [mapX, mapY] = [nextMapX, nextMapY];
-    console.log(mapX,mapY)
 
     player.setPosition(
-      MAP_OFFSET + mapX*TILE_LENGTH, 
+      MAP_OFFSET + mapX*TILE_LENGTH,
       MAP_OFFSET + mapY*TILE_LENGTH
     );
 
+    if (moves.length % cloneLateFactor == 0 && cloneCount < cloneLimit) spawnClone();
+
     stopClonesFromMoving();
 
-    if (moves.length % cloneLateFactor == 0 && cloneCount < cloneLimit) spawnClone();
   }
 }
 
@@ -155,14 +186,25 @@ function playerInput(time) {
       pressed = true;
       moving = true;
       startPressTime = time;
-
-      [vx, vy] = [v*xAxis, v*yAxis];
-      player.setVelocity(vx,vy);
           
       nextMapX += xAxis;
       nextMapY += yAxis;
 
+      tile = layer.getTileAtWorldXY(nextMapX*TILE_LENGTH, nextMapY*TILE_LENGTH);
+      if (tile && tile.canCollide) {
+        console.log(tile);
+        nextMapX = mapX;
+        nextMapY = mapY;
+      } else { 
+        console.log(null);
+        [vx, vy] = [v*xAxis, v*yAxis];
+        player.setVelocity(vx,vy);
+      }
+
       moveClonesFromInput();
+
+      g.clear();
+      g.lineStyle(4, 0xff0000, 1);
     }
   } else {
     pressed = false;
@@ -184,7 +226,8 @@ class Test extends Phaser.Scene {
     const map = this.make.tilemap({key: 'map'});
     const tileset = map.addTilesetImage('spritefusion', 'tiles');
 
-    layer = map.createStaticLayer('Ground', tileset, 0, 0).setScale(2);
+    layer = map.createDynamicLayer('Ground', tileset, 0, 0).setScale(2);
+    layer.setCollisionBetween(15, 16);
 
     player = this.physics.add.sprite(
       MAP_OFFSET + TILE_LENGTH*mapX,
@@ -199,8 +242,8 @@ class Test extends Phaser.Scene {
 
     cursors = this.input.keyboard.createCursorKeys();
 
-    const graphics = this.add.graphics();
-    drawArrow(graphics, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    g = this.add.graphics();
+    g.lineStyle(4, 0xff0000, 1);
 
   }
 
