@@ -8,10 +8,10 @@ var player;
 var moves = [];
 
 // Clones
-const cloneLimit = 3;
+const cloneLimit = 2;
 const cloneLateFactor = 3;
-var clone;
 var cloneGroup;
+var clone;
 var cloneCount = 0;
 
 // Touches
@@ -20,7 +20,7 @@ var xAxis;
 var yAxis;
 
 // Mouvement
-const t = 0.25;
+const t = 0.3;
 const v = (TILE_LENGTH/t);
 var vx = 0;
 var vy = 0;
@@ -39,9 +39,6 @@ var mapY = startY;
 var nextMapX = mapX;
 var nextMapY = mapY;
 
-// Tracking
-var occupied = [];
-
 // Temps
 var startPressTime = 0;
 var elapsed = 0;
@@ -49,6 +46,7 @@ var elapsed = 0;
 // Condition
 var pressed = false;
 var moving = false;
+let spawning;
 
 // Level
 var layer;
@@ -73,11 +71,6 @@ function drawArrow(g, x1, y1, x2, y2, headLength = 10) {
 }
 
 function pushMoveFromVelocity(vx, vy) {
-  if(vx == 0 && vy == 0) {
-    moves.push(null);
-    return;
-  }
-
   directionMap.forEach(d => {
     if(d.check({ vx, vy })) moves.push(d.dir);
   });
@@ -85,17 +78,14 @@ function pushMoveFromVelocity(vx, vy) {
 
 function moveClonesFromInput() {
   cloneGroup.children.each(function (clone) {    
-    if (clone.i != null) {
-      let vd = directionMap[clone.i].vd;
+    let vd = directionMap[clone.i].vd;
 
-      [clone.vx, clone.vy] = [vd[0]*v, 
-                            vd[1]*v];
+    [clone.vx, clone.vy] = [vd[0]*v, vd[1]*v];
 
-      [clone.mapX, clone.mapY] = [clone.mapX + vd[0], 
-                                clone.mapY + vd[1]];
-
-      clone.setVelocity(clone.vx, clone.vy);
-    }
+    [clone.lastMapX, clone.lastMapY] = [clone.mapX, clone.mapY];
+    [clone.mapX, clone.mapY] = [clone.nextMapX, clone.nextMapY];
+    
+    clone.setVelocity(clone.vx, clone.vy);
 
     clone.stepCount += 1;
 
@@ -104,6 +94,29 @@ function moveClonesFromInput() {
 
 function stopClonesFromMoving() {
   cloneGroup.children.each(function (clone) {
+    clone.i = moves[clone.stepCount];
+    if(clone.isBashed) {
+      [clone.mapX, clone.mapY] = [clone.lastMapX, clone.lastMapY];
+    }
+    clone.isBashed = false;
+    clone.isPushed = false;
+
+    clone.nextMapX = clone.mapX + directionMap[clone.i].vd[0];
+    clone.nextMapY = clone.mapY + directionMap[clone.i].vd[1];
+
+    let x1 = clone.mapX*TILE_LENGTH + MAP_OFFSET;
+    let y1 = clone.mapY*TILE_LENGTH + MAP_OFFSET;
+    let x2 = clone.nextMapX*TILE_LENGTH + MAP_OFFSET;
+    let y2 = clone.nextMapY*TILE_LENGTH + MAP_OFFSET;
+    drawArrow(g, x1, y1, x2, y2);
+
+    tile = layer.getTileAtWorldXY(clone.nextMapX*TILE_LENGTH, clone.nextMapY*TILE_LENGTH);
+    if (tile && tile.canCollide) {
+      clone.nextMapX = clone.mapX;
+      clone.nextMapY = clone.mapY;
+      clone.isPushed = true;
+    }
+
     [clone.vx, clone.vy] = [0, 0];
     clone.setVelocity(clone.vx, clone.vy);
 
@@ -112,31 +125,21 @@ function stopClonesFromMoving() {
       MAP_OFFSET + clone.mapY*TILE_LENGTH
     );
 
-    clone.i = moves[clone.stepCount];
-
-    if (clone.i != null) {
-      clone.nextMapX = clone.mapX + directionMap[clone.i].vd[0];
-      clone.nextMapY = clone.mapY + directionMap[clone.i].vd[1];
-
-      let x1 = clone.mapX*TILE_LENGTH + MAP_OFFSET;
-      let y1 = clone.mapY*TILE_LENGTH + MAP_OFFSET;
-      let x2 = clone.nextMapX*TILE_LENGTH + MAP_OFFSET;
-      let y2 = clone.nextMapY*TILE_LENGTH + MAP_OFFSET;
-      drawArrow(g, x1, y1, x2, y2);
-    
-    }
-
   });
 
 }
 
 function spawnClone() {
+  if(!spawning) {
+    return;
+  }
+
   cloneCount += 1;
 
   clone = cloneGroup.create(
     MAP_OFFSET + startX*TILE_LENGTH,
     MAP_OFFSET + startY*TILE_LENGTH,
-    'stick'
+    'hitbox'
   );
 
   Object.assign(clone, {
@@ -147,7 +150,12 @@ function spawnClone() {
     stepCount: 0,
     nextMapX: 0,
     nextMapY: 0,
+    lastMapX: 0,
+    lastMapY: 0,
     i: 0,
+    // Condition
+    isBashed: false,
+    isPushed: false,
   });
 
   clone.setScale(2);
@@ -192,19 +200,17 @@ function playerInput(time) {
 
       tile = layer.getTileAtWorldXY(nextMapX*TILE_LENGTH, nextMapY*TILE_LENGTH);
       if (tile && tile.canCollide) {
-        console.log(tile);
         nextMapX = mapX;
         nextMapY = mapY;
-      } else { 
-        console.log(null);
-        [vx, vy] = [v*xAxis, v*yAxis];
-        player.setVelocity(vx,vy);
       }
+
+      [vx, vy] = [v*xAxis, v*yAxis];
+      player.setVelocity(vx,vy);
 
       moveClonesFromInput();
 
       g.clear();
-      g.lineStyle(4, 0xff0000, 1);
+      g.lineStyle(4, 0xffffff, 1);
     }
   } else {
     pressed = false;
@@ -215,7 +221,7 @@ class Test extends Phaser.Scene {
   preload() {
     this.load.image('stick', 'assets/stick.png');
 
-    this.load.image('cube', 'assets/cube.png');
+    this.load.image('hitbox', 'assets/hitbox.png');
 
     this.load.image('tiles', 'assets/spritesheet.png');
     this.load.tilemapTiledJSON('map', 'assets/tilemaps/map.json');
@@ -223,6 +229,9 @@ class Test extends Phaser.Scene {
   }
 
   create() {    
+    g = this.add.graphics();
+    g.lineStyle(4, 0xffffff, 1);
+
     const map = this.make.tilemap({key: 'map'});
     const tileset = map.addTilesetImage('spritefusion', 'tiles');
 
@@ -232,18 +241,59 @@ class Test extends Phaser.Scene {
     player = this.physics.add.sprite(
       MAP_OFFSET + TILE_LENGTH*mapX,
       MAP_OFFSET + TILE_LENGTH*mapY, 
-      'stick'
+      'hitbox'
     );
     player.setScale(2);
     player.setCollideWorldBounds(true);
     this.physics.add.collider(player, layer);
 
     cloneGroup = this.physics.add.group();
+    this.physics.add.collider(cloneGroup, layer);
+
+    this.physics.add.overlap(player, cloneGroup, (p, c) => {
+      p.setVelocity(0,0);
+      p.setPosition(
+        MAP_OFFSET + mapX*TILE_LENGTH, 
+        MAP_OFFSET + mapY*TILE_LENGTH
+      );
+      [nextMapX, nextMapY] = [mapX, mapY];
+
+      c.isBashed = true;
+      c.setVelocity(0,0);
+      c.setPosition(
+        MAP_OFFSET + c.lastMapX*TILE_LENGTH, 
+        MAP_OFFSET + c.lastMapY*TILE_LENGTH
+      );
+    });
+    
+    this.physics.add.overlap(cloneGroup, cloneGroup, (c1, c2) => {
+      [c1, c2].forEach((clone) => {
+        if(clone.isPushed) {
+
+        } else {
+          clone.isBashed = true;
+          clone.setVelocity(0,0);
+          clone.setPosition(
+            MAP_OFFSET + clone.lastMapX*TILE_LENGTH, 
+            MAP_OFFSET + clone.lastMapY*TILE_LENGTH
+          );
+        }
+      });
+
+      /*if(c1.isPushed) {
+        
+      } else {
+        c1.isBashed = true;
+        c1.setVelocity(0,0);
+        c1.setPosition(
+          MAP_OFFSET + c1.lastMapX*TILE_LENGTH, 
+          MAP_OFFSET + c1.lastMapY*TILE_LENGTH
+        );
+      }*/
+      
+    });
 
     cursors = this.input.keyboard.createCursorKeys();
-
-    g = this.add.graphics();
-    g.lineStyle(4, 0xff0000, 1);
 
   }
 
@@ -253,6 +303,106 @@ class Test extends Phaser.Scene {
     } else {
       playerInput(time);
     }
+  } 
+
+}
+
+class Titre extends Phaser.Scene {
+  preload() {
+    this.load.image('cube', 'assets/cube.png');
+  }
+
+  create() {
+    let bg = this.add.image(12, 12, 'cube');
+  }
+
+  update(time) {
+    if (time > 3000) {
+      this.scene.switch('MenuScreen');
+    }
+  } 
+
+}
+
+class MenuScreen extends Phaser.Scene {
+  preload() {
+    this.load.image('cube', 'assets/cube.png');
+  }
+
+  create() {    
+    let bg = this.add.image(200, 100, 'cube');
+
+    cursors = this.input.keyboard.createCursorKeys();
+  }
+
+  update(time) {
+    if (cursors.right.isDown) {
+      spawning = true;
+      this.scene.switch('Test');
+    }
+    if (cursors.left.isDown) {
+      spawning = false;
+      this.scene.switch('LevelBuilder');
+    }
+  } 
+
+}
+
+class LevelBuilder extends Phaser.Scene {
+  preload() {
+    this.load.image('stick', 'assets/stick.png');
+
+    this.load.image('hitbox', 'assets/hitbox.png');
+
+    this.load.image('tiles', 'assets/spritesheet.png');
+    this.load.tilemapTiledJSON('map', 'assets/tilemaps/map.json');
+
+  }
+
+  create() {    
+    g = this.add.graphics();
+    g.lineStyle(4, 0xffffff, 1);
+
+    const map = this.make.tilemap({key: 'map'});
+    const tileset = map.addTilesetImage('spritefusion', 'tiles');
+
+    layer = map.createDynamicLayer('Empty', tileset, 0, 0).setScale(2);
+    layer.setCollisionBetween(15, 16);
+
+    player = this.physics.add.sprite(
+      MAP_OFFSET + TILE_LENGTH*mapX,
+      MAP_OFFSET + TILE_LENGTH*mapY, 
+      'hitbox'
+    );
+    player.setScale(2);
+    player.setCollideWorldBounds(true);
+    this.physics.add.collider(player, layer);
+
+    cloneGroup = this.physics.add.group();
+    this.physics.add.collider(cloneGroup, layer);
+    
+    this.physics.add.overlap(cloneGroup, cloneGroup, (c1, c2) => {
+      c1.setVelocity(0,0);
+      c2.setVelocity(0,0);
+
+      c1.setPosition(MAP_OFFSET + c1.mapX*TILE_LENGTH, MAP_OFFSET + c1.mapY*TILE_LENGTH);
+      c2.setPosition(MAP_OFFSET + c2.mapX*TILE_LENGTH, MAP_OFFSET + c2.mapY*TILE_LENGTH);
+
+      console.log(c1.mapX, c1.mapY);
+      console.log(c2.mapX, c2.mapY);
+    });
+
+    cursors = this.input.keyboard.createCursorKeys();
+
+  }
+
+  update(time) {
+    if (moving) {
+      whileMoving(time);
+    } else {
+      playerInput(time);
+    }
+    
   } 
 
 }
@@ -271,9 +421,13 @@ const config = {
 
 const game = new Phaser.Game(config);
 
+game.scene.add('Titre', Titre);
 game.scene.add('Test', Test);
+game.scene.add('MenuScreen', MenuScreen);
+game.scene.add('LevelBuilder', LevelBuilder);
 
-game.scene.start('Test');
+
+game.scene.start('MenuScreen');
 
 
 /*
