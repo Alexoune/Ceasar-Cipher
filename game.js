@@ -313,7 +313,7 @@ class Titre extends Phaser.Scene {
   }
 
   create() {
-    let bg = this.add.image(12, 12, 'cube');
+    let bg = this.add.image(240, 160, 'cube');
   }
 
   update(time) {
@@ -326,23 +326,57 @@ class Titre extends Phaser.Scene {
 
 class MenuScreen extends Phaser.Scene {
   preload() {
-    this.load.image('cube', 'assets/cube.png');
+    this.load.image('Menu', 'assets/scenes/menuScreen.png');
+    this.load.image('FlecheGauche', 'assets/scenes/flecheGauche.png');
+    this.load.image('FlecheDroite', 'assets/scenes/flecheDroite.png');
+    this.load.image('FlecheBas', 'assets/scenes/flecheBas.png');
+
   }
 
   create() {    
-    let bg = this.add.image(200, 100, 'cube');
+    let bg = this.add.image(240, 160, 'Menu');
+    let flecheGauche = this.add.image(50, 180, 'FlecheGauche');
+    let flecheDroite = this.add.image(430, 180, 'FlecheDroite');
+    let flecheBas = this.add.image(240, 290, 'FlecheBas');
 
+    bg.setScale(0.1);
+    flecheGauche.setScale(0.1);
+    flecheDroite.setScale(0.1);
+    flecheBas.setScale(0.1);
     cursors = this.input.keyboard.createCursorKeys();
   }
 
   update(time) {
-    if (cursors.right.isDown) {
+    if (cursors.left.isDown) {
       spawning = true;
       this.scene.switch('Test');
     }
-    if (cursors.left.isDown) {
+    if (cursors.right.isDown) {
       spawning = false;
       this.scene.switch('LevelBuilder');
+    }
+    if (cursors.down.isDown) {
+      this.scene.switch('AboutUsScreen');
+    }
+  } 
+
+}
+
+class AboutUsScreen extends Phaser.Scene {
+  preload() {
+    this.load.image('Background', 'assets/scenes/aboutUs.png');
+  }
+
+  create() {    
+    let bg = this.add.image(240, 160, 'Background');
+    bg.setScale(0.1);
+    cursors = this.input.keyboard.createCursorKeys();
+  }
+
+  update(time) {
+    if (cursors.up.isDown) {
+      this.scene.switch('MenuScreen');
+      location.reload();
     }
   } 
 
@@ -425,6 +459,7 @@ game.scene.add('Titre', Titre);
 game.scene.add('Test', Test);
 game.scene.add('MenuScreen', MenuScreen);
 game.scene.add('LevelBuilder', LevelBuilder);
+game.scene.add('AboutUsScreen', AboutUsScreen);
 
 
 game.scene.start('MenuScreen');
