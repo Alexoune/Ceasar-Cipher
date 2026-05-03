@@ -12,6 +12,7 @@ const cloneLimit = 2;
 const cloneLateFactor = 3;
 var cloneGroup;
 var clone;
+var cloneToPush;
 var cloneCount = 0;
 
 // Touches
@@ -70,20 +71,66 @@ function drawArrow(g, x1, y1, x2, y2, headLength = 10) {
 
 }
 
+function checkCollisionAtSquare(x,y) {
+  tile = layer.getTileAtWorldXY(x*TILE_LENGTH, y*TILE_LENGTH);
+  return tile && tile.canCollide;
+}
+
 function pushMoveFromVelocity(vx, vy) {
   directionMap.forEach(d => {
     if(d.check({ vx, vy })) moves.push(d.dir);
   });
 }
 
-function moveClonesFromInput() {
+function pushCloneInterraction() {
+  cloneToPush = null;
+
   cloneGroup.children.each(function (clone) {    
-    let vd = directionMap[clone.i].vd;
+    if(clone.mapX == nextMapX && clone.mapY == nextMapY && clone.isCollide) {
+      cloneToPush = clone;
+    }
+  });
 
-    [clone.vx, clone.vy] = [vd[0]*v, vd[1]*v];
+  if(cloneToPush) {
+    let pushX = cloneToPush.mapX + xAxis;
+    let pushY = cloneToPush.mapY + yAxis;
+    if(!checkCollisionAtSquare(pushX, pushY)) {
+      cloneToPush.vx = (cloneToPush.nextMapX - cloneToPush.mapX)*v;
+      cloneToPush.vy = (cloneToPush.nextMapY - cloneToPush.mapY)*v;
+      console.log(cloneToPush.nextMapX - cloneToPush.mapX, cloneToPush.nextMapY - cloneToPush.mapY);
 
-    [clone.lastMapX, clone.lastMapY] = [clone.mapX, clone.mapY];
-    [clone.mapX, clone.mapY] = [clone.nextMapX, clone.nextMapY];
+      cloneToPush.nextMapX = pushX;
+      cloneToPush.nextMapY = pushY;
+
+    } else {
+      [nextMapX, nextMapY] = [mapX, mapY];
+    }
+
+    return
+  }
+    
+  if (checkCollisionAtSquare(nextMapX, nextMapY)) {
+    nextMapX = mapX;
+    nextMapY = mapY;
+  }
+
+}
+
+function moveClonesFromInput() {
+  cloneGroup.children.each(function (clone) {
+    clone.vx += (clone.nextMapX - clone.mapX)*v;
+    clone.vy += (clone.nextMapY - clone.mapY)*v;
+
+    if (checkCollisionAtSquare(clone.nextMapX, clone.nextMapY)) {
+      clone.nextMapX = clone.mapX;
+      clone.nextMapY = clone.mapY;
+    }
+
+    clone.lastMapX = clone.mapX;
+    clone.lastMapY = clone.mapY;
+
+    clone.mapX = clone.nextMapX;
+    clone.mapY = clone.nextMapY;
     
     clone.setVelocity(clone.vx, clone.vy);
 
@@ -96,10 +143,11 @@ function stopClonesFromMoving() {
   cloneGroup.children.each(function (clone) {
     clone.i = moves[clone.stepCount];
     if(clone.isBashed) {
-      [clone.mapX, clone.mapY] = [clone.lastMapX, clone.lastMapY];
+      clone.mapX = clone.lastMapX;
+      clone.mapY = clone.lastMapY;
     }
     clone.isBashed = false;
-    clone.isPushed = false;
+    clone.isCollide = false;
 
     clone.nextMapX = clone.mapX + directionMap[clone.i].vd[0];
     clone.nextMapY = clone.mapY + directionMap[clone.i].vd[1];
@@ -110,14 +158,12 @@ function stopClonesFromMoving() {
     let y2 = clone.nextMapY*TILE_LENGTH + MAP_OFFSET;
     drawArrow(g, x1, y1, x2, y2);
 
-    tile = layer.getTileAtWorldXY(clone.nextMapX*TILE_LENGTH, clone.nextMapY*TILE_LENGTH);
-    if (tile && tile.canCollide) {
-      clone.nextMapX = clone.mapX;
-      clone.nextMapY = clone.mapY;
-      clone.isPushed = true;
+    if (checkCollisionAtSquare(clone.nextMapX, clone.nextMapY)) {
+      clone.isCollide = true;
     }
 
-    [clone.vx, clone.vy] = [0, 0];
+    clone.vx = 0; 
+    clone.vy = 0;
     clone.setVelocity(clone.vx, clone.vy);
 
     clone.setPosition(
@@ -155,10 +201,12 @@ function spawnClone() {
     i: 0,
     // Condition
     isBashed: false,
-    isPushed: false,
+    isCollide: false,
   });
 
   clone.setScale(2);
+  clone.body.setSize(8,8);
+  clone.body.setOffset(0,0); 
 }
 
 function whileMoving(time) {
@@ -197,17 +245,13 @@ function playerInput(time) {
           
       nextMapX += xAxis;
       nextMapY += yAxis;
-
-      tile = layer.getTileAtWorldXY(nextMapX*TILE_LENGTH, nextMapY*TILE_LENGTH);
-      if (tile && tile.canCollide) {
-        nextMapX = mapX;
-        nextMapY = mapY;
-      }
-
       [vx, vy] = [v*xAxis, v*yAxis];
-      player.setVelocity(vx,vy);
+
+      pushCloneInterraction();
 
       moveClonesFromInput();
+
+      player.setVelocity(vx,vy);
 
       g.clear();
       g.lineStyle(4, 0xffffff, 1);
@@ -244,6 +288,8 @@ class Test extends Phaser.Scene {
       'hitbox'
     );
     player.setScale(2);
+    player.body.setSize(8,8);
+    player.body.setOffset(0,0); 
     player.setCollideWorldBounds(true);
     this.physics.add.collider(player, layer);
 
@@ -267,30 +313,14 @@ class Test extends Phaser.Scene {
     });
     
     this.physics.add.overlap(cloneGroup, cloneGroup, (c1, c2) => {
-      [c1, c2].forEach((clone) => {
-        if(clone.isPushed) {
-
-        } else {
-          clone.isBashed = true;
-          clone.setVelocity(0,0);
-          clone.setPosition(
-            MAP_OFFSET + clone.lastMapX*TILE_LENGTH, 
-            MAP_OFFSET + clone.lastMapY*TILE_LENGTH
-          );
-        }
-      });
-
-      /*if(c1.isPushed) {
-        
-      } else {
-        c1.isBashed = true;
-        c1.setVelocity(0,0);
-        c1.setPosition(
-          MAP_OFFSET + c1.lastMapX*TILE_LENGTH, 
-          MAP_OFFSET + c1.lastMapY*TILE_LENGTH
+      [c1, c2].forEach((clone) => {    
+        clone.isBashed = true;
+        clone.setVelocity(0,0);
+        clone.setPosition(
+          MAP_OFFSET + clone.lastMapX*TILE_LENGTH, 
+          MAP_OFFSET + clone.lastMapY*TILE_LENGTH
         );
-      }*/
-      
+      });
     });
 
     cursors = this.input.keyboard.createCursorKeys();
@@ -448,7 +478,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-       debug: false
+       debug: true
     }
   },
 };
