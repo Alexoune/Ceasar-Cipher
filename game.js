@@ -1,60 +1,16 @@
+import Titre from './scenes/titre.js';
+import MenuScreen from "./scenes/menuscreen.js";
+import AboutUs from "./scenes/aboutUs.js";
+import Load from "./scenes/load.js";
+import Story from './scenes/story.js';
+import LevelBuilder from './scenes/levelbuilder.js';
+
+import Player from './classes/player.js';
+
 const SCREEN_WIDTH = 480;
 const SCREEN_HEIGHT = 320;
 const TILE_LENGTH = 32;
 const MAP_OFFSET = 16;
-
-// Joueur
-var player;
-var moves = [];
-
-// Clones
-const cloneLimit = 2;
-const cloneLateFactor = 3;
-var cloneGroup;
-var clone;
-var cloneToPush;
-var cloneCount = 0;
-
-// Touches
-var cursors;
-var xAxis;
-var yAxis;
-
-// Mouvement
-const t = 0.3;
-const v = (TILE_LENGTH/t);
-var vx = 0;
-var vy = 0;
-const directionMap = [
-  {check: v => v.vx > 0, dir: 0, vd: [ 1, 0] },
-  {check: v => v.vy < 0, dir: 1, vd: [ 0,-1] },
-  {check: v => v.vx < 0, dir: 2, vd: [-1, 0] },
-  {check: v => v.vy > 0, dir: 3, vd: [ 0, 1] },
-];
-
-// Position
-var startX = 1;
-var startY = 1;
-var mapX = startX;
-var mapY = startY;
-var nextMapX = mapX;
-var nextMapY = mapY;
-
-// Temps
-var startPressTime = 0;
-var elapsed = 0;
-
-// Condition
-var pressed = false;
-var moving = false;
-let spawning;
-
-// Level
-var layer;
-let tile;
-
-// Visuel
-let g;
 
 function drawArrow(g, x1, y1, x2, y2, headLength = 10) {
   g.lineBetween(x1, y1, x2, y2);
@@ -176,10 +132,6 @@ function stopClonesFromMoving() {
 }
 
 function spawnClone() {
-  if(!spawning) {
-    return;
-  }
-
   cloneCount += 1;
 
   clone = cloneGroup.create(
@@ -282,18 +234,10 @@ class Test extends Phaser.Scene {
     layer = map.createDynamicLayer('Ground', tileset, 0, 0).setScale(2);
     layer.setCollisionBetween(15, 16);
 
-    player = this.physics.add.sprite(
-      MAP_OFFSET + TILE_LENGTH*mapX,
-      MAP_OFFSET + TILE_LENGTH*mapY, 
-      'hitbox'
-    );
-    player.setScale(2);
-    player.body.setSize(8,8);
-    player.body.setOffset(0,0); 
-    player.setCollideWorldBounds(true);
-    this.physics.add.collider(player, layer);
+    this.player = new Player(this, startX, startY);
+    this.physics.add.collider(this.player, layer);
 
-    cloneGroup = this.physics.add.group();
+    /*cloneGroup = this.physics.add.group();
     this.physics.add.collider(cloneGroup, layer);
 
     this.physics.add.overlap(player, cloneGroup, (p, c) => {
@@ -321,98 +265,19 @@ class Test extends Phaser.Scene {
           MAP_OFFSET + clone.lastMapY*TILE_LENGTH
         );
       });
-    });
+    });*/
 
     cursors = this.input.keyboard.createCursorKeys();
 
   }
 
   update(time) {
-    if (moving) {
-      whileMoving(time);
-    } else {
-      playerInput(time);
-    }
+    this.player.update(time);
   } 
 
 }
 
-class Titre extends Phaser.Scene {
-  preload() {
-    this.load.image('cube', 'assets/cube.png');
-  }
-
-  create() {
-    let bg = this.add.image(240, 160, 'cube');
-  }
-
-  update(time) {
-    if (time > 3000) {
-      this.scene.switch('MenuScreen');
-    }
-  } 
-
-}
-
-class MenuScreen extends Phaser.Scene {
-  preload() {
-    this.load.image('Menu', 'assets/scenes/menuScreen.png');
-    this.load.image('FlecheGauche', 'assets/scenes/flecheGauche.png');
-    this.load.image('FlecheDroite', 'assets/scenes/flecheDroite.png');
-    this.load.image('FlecheBas', 'assets/scenes/flecheBas.png');
-
-  }
-
-  create() {    
-    let bg = this.add.image(240, 160, 'Menu');
-    let flecheGauche = this.add.image(50, 180, 'FlecheGauche');
-    let flecheDroite = this.add.image(430, 180, 'FlecheDroite');
-    let flecheBas = this.add.image(240, 290, 'FlecheBas');
-
-    bg.setScale(0.1);
-    flecheGauche.setScale(0.1);
-    flecheDroite.setScale(0.1);
-    flecheBas.setScale(0.1);
-    cursors = this.input.keyboard.createCursorKeys();
-  }
-
-  update(time) {
-    if (cursors.left.isDown) {
-      spawning = true;
-      this.scene.switch('Test');
-    }
-    if (cursors.right.isDown) {
-      spawning = false;
-      this.scene.switch('LevelBuilder');
-    }
-    if (cursors.down.isDown) {
-      this.scene.switch('AboutUsScreen');
-    }
-  } 
-
-}
-
-class AboutUsScreen extends Phaser.Scene {
-  preload() {
-    this.load.image('Background', 'assets/scenes/aboutUs.png');
-  }
-
-  create() {    
-    let bg = this.add.image(240, 160, 'Background');
-    bg.setScale(0.1);
-    cursors = this.input.keyboard.createCursorKeys();
-  }
-
-  update(time) {
-    if (cursors.up.isDown) {
-      this.scene.switch('MenuScreen');
-      location.reload();
-    }
-  } 
-
-}
-
-class LevelBuilder extends Phaser.Scene {
+/*class LevelBuilder extends Phaser.Scene {
   preload() {
     this.load.image('stick', 'assets/stick.png');
 
@@ -469,7 +334,7 @@ class LevelBuilder extends Phaser.Scene {
     
   } 
 
-}
+}*/
 
 const config = {
   type: Phaser.AUTO,
@@ -481,28 +346,7 @@ const config = {
        debug: true
     }
   },
+  scene: [Load, Titre, MenuScreen, AboutUs, Story, LevelBuilder]
 };
 
 const game = new Phaser.Game(config);
-
-game.scene.add('Titre', Titre);
-game.scene.add('Test', Test);
-game.scene.add('MenuScreen', MenuScreen);
-game.scene.add('LevelBuilder', LevelBuilder);
-game.scene.add('AboutUsScreen', AboutUsScreen);
-
-
-game.scene.start('MenuScreen');
-
-
-/*
-
-Joueur/Clone: États quand il va bouger
-  - Normal: Aller vers une case libre, normalement
-  - Percute: Se cogne contre le joueur, un mur ou un clone
-  - Normal-pousseur: Pousse le joueur ou un clone, et va vers une case libre
-  - Percute-pousseur: Pousse le joueur ou un clone, mais cogne quelque chose
-  - Normal-poussé: Se fait pousser par le joueur ou un clone, et va vers une case libre ET/OU évite de cogner quelque chose
-  - Percute-poussé: Se fait pousser par le joueur ou un clone, mais cogne quelque chose
-
-*/
