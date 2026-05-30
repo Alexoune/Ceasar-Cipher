@@ -35,8 +35,8 @@ export default class Story extends Phaser.Scene {
             p.setVelocity(0,0);
             
             p.setPosition(
-                MAP_OFFSET_X + p.mapX*TILE_LENGTH, 
-                MAP_OFFSET_Y + p.mapY*TILE_LENGTH
+                16 + p.mapX*TILE_LENGTH, 
+                10 + p.mapY*TILE_LENGTH
             );
             
             [p.nextMapX, p.nextMapY] = [p.mapX, p.mapY];
@@ -44,8 +44,8 @@ export default class Story extends Phaser.Scene {
             c.isBashed = true;
             c.setVelocity(0,0);
             c.setPosition(
-                MAP_OFFSET_X + c.lastMapX*TILE_LENGTH, 
-                MAP_OFFSET_Y + c.lastMapY*TILE_LENGTH
+                16 + c.lastMapX*TILE_LENGTH, 
+                8 + c.lastMapY*TILE_LENGTH
             );
         });
 
@@ -54,8 +54,8 @@ export default class Story extends Phaser.Scene {
                 clone.isBashed = true;
                 clone.setVelocity(0,0);
                 clone.setPosition(
-                    MAP_OFFSET_X + clone.lastMapX*TILE_LENGTH, 
-                    MAP_OFFSET_Y + clone.lastMapY*TILE_LENGTH
+                    16 + clone.lastMapX*TILE_LENGTH, 
+                    8 + clone.lastMapY*TILE_LENGTH
                 );
             });
         });

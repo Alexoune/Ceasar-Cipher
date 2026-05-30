@@ -2,20 +2,25 @@ import { directionMap, moveInputs, vectorMap } from "../data/moveData.js";
 
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
-const MAP_OFFSET_Y = 16;
+const MAP_OFFSET_Y = 8;
 
 export default class Clone extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, MAP_OFFSET_X + TILE_LENGTH*x, MAP_OFFSET_Y + TILE_LENGTH*y, 'hitbox');
+        super(scene, MAP_OFFSET_X + TILE_LENGTH*x, MAP_OFFSET_Y + TILE_LENGTH*y, 'lapin_orange', 4);
 
         this.scene = scene;
         this.scene.add.existing(this);
         this.scene.physics.add.existing(this);
         this.setCollideWorldBounds(true);
 
-        this.setScale(2);
-        this.body.setSize(8,8);
-        this.body.setOffset(0,0); 
+        this.body.setSize(12,12);
+        this.body.setOffset(this.displayWidth/4, this.displayHeight/2); 
+
+        this.setScale(4/3);
+
+        this.animation;
+        this.deltaX;
+        this.deltaY;
 
         this.t = 0.3;
         this.v = (TILE_LENGTH/this.t);
@@ -41,6 +46,8 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
     }
 
     moveClone(layer) {
+        this.anims.play(this.animation, true);
+
         this.vx += (this.nextMapX - this.mapX)*this.v;
         this.vy += (this.nextMapY - this.mapY)*this.v;
 
@@ -62,6 +69,9 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
     }   
 
     stopClone(layer) {
+        this.anims.stop()
+        this.setFrame(4);
+
         this.i = moveInputs[this.stepCount];
         
         if(this.isBashed) {
@@ -71,8 +81,6 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
 
         this.isBashed = false;
         this.isCollide = false;
-
-        console.log(vectorMap[0][0]);
 
         this.nextMapX = this.mapX + vectorMap[this.i][0];
         this.nextMapY = this.mapY + vectorMap[this.i][1];
@@ -96,6 +104,14 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
             MAP_OFFSET_X + this.mapX*TILE_LENGTH, 
             MAP_OFFSET_Y + this.mapY*TILE_LENGTH
         );
+
+        this.deltaX = this.nextMapX - this.mapX;
+        this.deltaY = this.nextMapY - this.mapY;
+
+        if(this.deltaX > 0 && this.deltaY == 0) this.animation = "lapin_orange_right";
+        else if(this.deltaX < 0 && this.deltaY == 0) this.animation = "lapin_orange_left";
+        else if(this.deltaX == 0 && this.deltaY > 0) this.animation = "lapin_orange_down";
+        else if(this.deltaX == 0 && this.deltaY < 0) this.animation = "lapin_orange_up";
 
     }
     

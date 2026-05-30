@@ -5,6 +5,8 @@ import TileOverlay from "../classes/tileOverlay.js";
 import { tileGroups, tileRecipes } from "../data/autotileData.js";
 import { vectorMap } from "../data/moveData.js";
 
+import Keys from "../classes/keys.js";
+
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
 const MAP_OFFSET_Y = 16;
@@ -51,8 +53,8 @@ export default class LevelBuilder extends Phaser.Scene {
             p.setVelocity(0,0);
             
             p.setPosition(
-                MAP_OFFSET_X + p.mapX*TILE_LENGTH, 
-                MAP_OFFSET_Y + p.mapY*TILE_LENGTH
+                16 + p.mapX*TILE_LENGTH, 
+                10 + p.mapY*TILE_LENGTH
             );
             
             [p.nextMapX, p.nextMapY] = [p.mapX, p.mapY];
@@ -60,8 +62,8 @@ export default class LevelBuilder extends Phaser.Scene {
             c.isBashed = true;
             c.setVelocity(0,0);
             c.setPosition(
-                MAP_OFFSET_X + c.lastMapX*TILE_LENGTH, 
-                MAP_OFFSET_Y + c.lastMapY*TILE_LENGTH
+                16 + c.lastMapX*TILE_LENGTH, 
+                8 + c.lastMapY*TILE_LENGTH
             );
         });
 
@@ -70,13 +72,15 @@ export default class LevelBuilder extends Phaser.Scene {
                 clone.isBashed = true;
                 clone.setVelocity(0,0);
                 clone.setPosition(
-                    MAP_OFFSET_X + clone.lastMapX*TILE_LENGTH, 
-                    MAP_OFFSET_Y + clone.lastMapY*TILE_LENGTH
+                    16 + clone.lastMapX*TILE_LENGTH, 
+                    8 + clone.lastMapY*TILE_LENGTH
                 );
             });
         });
 
         this.tileOverlay = new TileOverlay(this, 0, 0);
+
+        this.keys = new Keys(this);
     }
 
     drawArrow(x1, y1, x2, y2, headLength = 10) {
@@ -176,10 +180,117 @@ export default class LevelBuilder extends Phaser.Scene {
         
     }
 
+    copyLevel() {
+        let storedLevel = "";
+
+        storedLevel += `
+    {
+        "id": 1,
+        "name": "Ground",
+        "opacity": 1.0,
+        "type": "tilelayer",
+        "visible": true,
+        "x": 0,
+        "y": 0,
+        "width": 23,
+        "height": 15,
+        "data": [
+        `;
+
+        storedLevel += this.copyLayer(this.ground);
+
+        storedLevel += `
+        ],
+        "properties": [
+            {
+            "name": "collider",
+            "type": "bool",
+            "value": false
+            }
+        ]
+    }, {
+        "id": 2,
+        "name": "Foreground",
+        "opacity": 1.0,
+        "type": "tilelayer",
+        "visible": true,
+        "x": 0,
+        "y": 0,
+        "width": 23,
+        "height": 15,
+        "data": [
+        `;
+
+        storedLevel += this.copyLayer(this.foreground);
+
+        storedLevel += `
+        ],
+        "properties": [
+            {
+            "name": "collider",
+            "type": "bool",
+            "value": false
+            }
+        ]
+    }, {
+        "id": 3,
+        "name": "Background",
+        "opacity": 1.0,
+        "type": "tilelayer",
+        "visible": true,
+        "x": 0,
+        "y": 0,
+        "width": 23,
+        "height": 15,
+        "data": [
+        `;
+
+        storedLevel += this.copyLayer(this.background);
+
+        storedLevel += `
+        ],
+        "properties": [
+            {
+            "name": "collider",
+            "type": "bool",
+            "value": false
+            }
+        ]
+    }
+        `;
+
+        navigator.clipboard.writeText(storedLevel);
+    }
+
+    copyLayer(layer) {
+        let storedLayer = "";
+        let tile;
+
+        for (let y = 0; y < layer.layer.height; y++) {
+            for (let x = 0; x < layer.layer.width; x++) {
+                tile = layer.layer.data[y][x].index;
+                if (tile < 0) tile = 0;
+
+                storedLayer += (tile + ",");
+            }
+        }
+
+        storedLayer = storedLayer.slice(0,-1);
+
+        //navigator.clipboard.writeText(storedLayer);
+
+        return storedLayer;
+
+    }
+
     update(time) {
         this.player.update(time, this.ground);
 
         this.tileOverlay.update(time);
+
+        if (this.keys.isQ()) {
+            this.copyLevel();
+        }
     } 
 
 }

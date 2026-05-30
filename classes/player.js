@@ -4,20 +4,21 @@ import { directionMap, moveInputs } from "../data/moveData.js";
 
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
-const MAP_OFFSET_Y = 16;
+const MAP_OFFSET_Y = 10;
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, MAP_OFFSET_X + TILE_LENGTH*x, MAP_OFFSET_Y + TILE_LENGTH*y, 'hitbox');
+        super(scene, MAP_OFFSET_X + TILE_LENGTH*x, MAP_OFFSET_Y + TILE_LENGTH*y, 'lapin_sang', 4);
 
         this.scene = scene;
         this.scene.add.existing(this);
         this.scene.physics.add.existing(this);
         this.setCollideWorldBounds(true);
 
-        this.setScale(2);
-        this.body.setSize(8,8);
-        this.body.setOffset(0,0); 
+        this.body.setSize(12,12);
+        this.body.setOffset(this.displayWidth/4, this.displayHeight/2) - 2; 
+
+        this.setScale(4/3);
 
         this.keys = new Keys(this.scene);
 
@@ -86,6 +87,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
                 this.scene.moveClones(layer);
 
+                if (this.xAxis > 0 && this.yAxis == 0) this.anims.play("lapin_sang_right", true);
+                else if (this.xAxis < 0 && this.yAxis == 0) this.anims.play("lapin_sang_left", true);
+                else if (this.xAxis == 0 && this.yAxis > 0) this.anims.play("lapin_sang_down", true);
+                else if (this.xAxis == 0 && this.yAxis < 0) this.anims.play("lapin_sang_up", true);
+
                 this.setVelocity(this.vx,this.vy);
 
             }
@@ -119,6 +125,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 this.scene.createClone();
                 this.cloneCount += 1;
             }
+
+            this.anims.stop()
+            this.setFrame(4);
 
             this.scene.stopClones(layer);
 

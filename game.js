@@ -7,8 +7,8 @@ import LevelBuilder from './scenes/levelbuilder.js';
 
 import Player from './classes/player.js';
 
-const SCREEN_WIDTH = 480;
-const SCREEN_HEIGHT = 320;
+const SCREEN_WIDTH = 736;
+const SCREEN_HEIGHT = 480;
 
 const config = {
   type: Phaser.AUTO,
@@ -17,10 +17,10 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-       debug: false
+       debug: true
     }
   },
-  scene: [Load, LevelBuilder]
+  scene: [Load, Titre, MenuScreen, AboutUs, Story, LevelBuilder]
 };
 
 const game = new Phaser.Game(config);
