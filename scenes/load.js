@@ -23,7 +23,7 @@ export default class AboutUs extends Phaser.Scene {
     }
 
     create() {    
-        this.scene.switch('titre');
+        this.scene.switch('levelBuilder');
     }
 
 }

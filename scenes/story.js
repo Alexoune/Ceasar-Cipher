@@ -20,11 +20,9 @@ export default class Story extends Phaser.Scene {
         this.g.lineStyle(4, 0xffffff, 1);
 
         this.map = this.make.tilemap({key: 'map'});
-        this.tileset = this.map.addTilesetImage('spritefusion', 'tiles');
+        this.tileset = this.map.addTilesetImage('spritefusion', 'tileset');
 
-        this.ground = this.map.createDynamicLayer('Ground', this.tileset, 0, 0).setScale(2);
-        this.ground.setCollisionBetween(15, 16);
-
+        this.ground = this.map.createDynamicLayer('Ground', this.tileset, 0, 0);
 
         this.player = new Player(this, this.startX, this.startY);
         this.physics.add.collider(this.player, this.ground);

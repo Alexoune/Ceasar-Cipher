@@ -1,5 +1,9 @@
 import Player from "../classes/player.js";
 import Clone from "../classes/clone.js";
+import TileOverlay from "../classes/tileOverlay.js";
+
+import { tileGroups, tileRecipes } from "../data/autotileData.js";
+import { vectorMap } from "../data/moveData.js";
 
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
@@ -12,9 +16,15 @@ export default class LevelBuilder extends Phaser.Scene {
         this.startX = 1;
         this.startY = 1;
 
+        this.check;
+
         this.tile;
+        this.tileGroup;
+        this.recipe;
+        this.edgeTile;
 
         this.spawning = false;
+
     }
 
     create() {    
@@ -24,7 +34,11 @@ export default class LevelBuilder extends Phaser.Scene {
         this.map = this.make.tilemap({key: 'build'});
         this.tileset = this.map.addTilesetImage('spritefusion', 'tileset');
 
+        this.background = this.map.createDynamicLayer('Background', this.tileset, 0, 0);
         this.ground = this.map.createDynamicLayer('Ground', this.tileset, 0, 0);
+        this.foreground = this.map.createDynamicLayer('Foreground', this.tileset, 0, 0);
+
+        this.layerList = [this.background, this.ground, this.foreground];
 
         this.player = new Player(this, this.startX, this.startY);
         this.physics.add.collider(this.player, this.ground);
@@ -61,6 +75,8 @@ export default class LevelBuilder extends Phaser.Scene {
                 );
             });
         });
+
+        this.tileOverlay = new TileOverlay(this, 0, 0);
     }
 
     drawArrow(x1, y1, x2, y2, headLength = 10) {
@@ -78,8 +94,8 @@ export default class LevelBuilder extends Phaser.Scene {
     }
 
     checkCollisionAtSquare(x, y, layer) {
-        this.tile = layer.getTileAt(x, y);
-        return this.tile && this.tile.canCollide;
+        this.check = layer.getTileAt(x, y);
+        return this.check && this.check.canCollide;
     }
 
     createClone() {
@@ -113,8 +129,57 @@ export default class LevelBuilder extends Phaser.Scene {
         return null;
     }
 
+    putTile(layer, tile, x, y) {
+        if (tile == 1) {
+            layer.putTileAt(-1, x, y);
+            return;
+        }
+
+        layer.putTileAt(tile, x, y);
+    }
+
+    fixTile(layer, x, y) {
+        this.tile = layer.layer.data[y][x].index - 1;
+
+        if (this.tile < 0 || !tileRecipes[this.tile]) {
+            return;
+        }
+
+        this.tileGroup = tileGroups[this.tile];
+
+        if (!this.tileGroup) {
+            return;
+        }
+
+        this.recipe = "";
+
+        for (let i = 0; i < vectorMap.length; i++) {
+            if (x + vectorMap[i][0] > layer.layer.width - 1 || x + vectorMap[i][0] < 0) continue;
+            if (y + vectorMap[i][1] > layer.layer.height - 1 || y + vectorMap[i][1] < 0) continue;
+
+            this.edgeTile = layer.layer.data[y + vectorMap[i][1]][x + vectorMap[i][0]].index - 1
+
+            if (this.tileGroup === tileGroups[this.edgeTile]) {
+                this.recipe += "1";
+            } else {
+                this.recipe += "0";
+            }
+        }
+
+        for (let t = 0; t < tileGroups.length; t++) {
+            if (tileGroups[t] != this.tileGroup) continue;
+            if (!tileRecipes[t].includes(this.recipe)) continue;
+
+            layer.putTileAt(t + 1, x, y);
+            return
+        }
+        
+    }
+
     update(time) {
         this.player.update(time, this.ground);
+
+        this.tileOverlay.update(time);
     } 
 
 }

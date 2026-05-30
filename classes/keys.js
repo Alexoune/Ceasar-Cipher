@@ -9,17 +9,22 @@ export default class Keys {
 
         this.space = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        this.zero = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ZERO);
-        this.one = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
-        this.two = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
-        this.three = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE);
-        this.four = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR);
-        this.five = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FIVE);
-        this.six = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SIX);
-        this.seven = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SEVEN);
-        this.eight = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.EIGHT);
-        this.nine = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NINE);
+        this.e = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
+        this.a = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.l = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
 
+        this.numbers = [
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ZERO),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ONE),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.TWO),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.THREE),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FOUR),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.FIVE),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SIX),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SEVEN),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.EIGHT),
+            this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.NINE),
+        ];
 
     }
 
@@ -43,16 +48,21 @@ export default class Keys {
         return this.space.isDown;
     }
 
-    isZero() { return Phaser.Input.Keyboard.JustDown(this.zero); }
-    isOne() { return Phaser.Input.Keyboard.JustDown(this.one); }
-    isTwo() { return Phaser.Input.Keyboard.JustDown(this.two); }
-    isThree() { return Phaser.Input.Keyboard.JustDown(this.three); }
-    isFour() { return Phaser.Input.Keyboard.JustDown(this.four); }
-    isFive() { return Phaser.Input.Keyboard.JustDown(this.five); }
-    isSix() { return Phaser.Input.Keyboard.JustDown(this.six); }
-    isSeven() { return Phaser.Input.Keyboard.JustDown(this.seven); }
-    isEight() { return Phaser.Input.Keyboard.JustDown(this.eight); }
-    isNine() { return Phaser.Input.Keyboard.JustDown(this.nine); }
+    isE() {
+        return Phaser.Input.Keyboard.JustDown(this.e);
+    }
+
+    isA() {
+        return Phaser.Input.Keyboard.JustDown(this.a);
+    }
+
+    isL() {
+        return Phaser.Input.Keyboard.JustDown(this.l);
+    }
+
+    isNumberKey(n) {
+        return Phaser.Input.Keyboard.JustDown(this.numbers[n]);
+    }
 
 
     
