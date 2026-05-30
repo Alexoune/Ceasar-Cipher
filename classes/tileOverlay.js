@@ -36,7 +36,7 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
 
     }
 
-    update(time, layer = this.layerList[this.layer]) {
+    update(time, layer = this.scene.layerList[this.layer]) {
         if (this.keys.isNumberKey(0)) this.tile = 0;
         if (this.keys.isNumberKey(1)) this.tile = 1;
         if (this.keys.isNumberKey(2)) this.tile = 2;
@@ -88,7 +88,7 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
         if (this.keys.isL()) {
             this.layer += 1;
 
-            if (this.layer > this.layerList.length - 1) {
+            if (this.layer > this.scene.layerList.length - 1) {
                 this.layer = 0;
             }
 

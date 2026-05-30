@@ -8,6 +8,7 @@ export default class Keys {
         this.up = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
 
         this.space = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.esc = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
         this.e = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
         this.a = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -43,6 +44,10 @@ export default class Keys {
 
     isUp() {
         return Phaser.Input.Keyboard.JustDown(this.up);
+    }
+
+    isEsc() {
+        return Phaser.Input.Keyboard.JustDown(this.esc);
     }
 
     isSpace() {

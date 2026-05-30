@@ -16,12 +16,17 @@ export default class AboutUs extends Phaser.Scene {
         this.load.image('stick', 'assets/stick.png');
         this.load.image('cube', 'assets/cube.png');
         this.load.image('hitbox', 'assets/hitbox.png');
+
+        this.load.image('black', 'assets/black-canvas.png');
         
         this.load.image('tileset', 'assets/tilesheet.png');
         this.load.tilemapTiledJSON('build', 'assets/tilemaps/build.json');
         this.load.tilemapTiledJSON('map', 'assets/tilemaps/map.json');
 
-        this.load.audio('theme', 'assets/musiques/Song-of-the-Century.mp3');
+        this.load.audio('songStart', 'assets/musiques/Song-of-the-Century.mp3');
+
+        this.load.audio('suddenStop', 'assets/sound_effects/sudden-stop.mp3');
+        this.load.audio('game_over_static', 'assets/sound_effects/radio-static-cb.mp3');
 
         this.load.spritesheet('lapin_sang','assets/animations/blood_lapin.png', { frameWidth:24, frameHeight:32});
         this.load.spritesheet('lapin_orange','assets/animations/orange_lapin.png', { frameWidth:24, frameHeight:32});
@@ -124,7 +129,15 @@ export default class AboutUs extends Phaser.Scene {
         });
 
 
-        this.scene.switch('titre');
+        // Animation statique pour l'écran Game Over / Intro
+        this.anims.create({
+            key: 'lapin_game_over',
+            frames: this.anims.generateFrameNumbers('lapin_game_over', { start: 0, end: 2 }),
+            frameRate: 4,
+            repeat: -1
+        });
+
+        this.scene.switch('menuScreen');
     }
 
 }

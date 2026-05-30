@@ -1,6 +1,10 @@
 import Player from "../classes/player.js";
 import Clone from "../classes/clone.js";
 
+import TransitionOverlay from "../classes/transitionOverlay.js";
+
+import Keys from "../classes/keys.js";
+
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
 const MAP_OFFSET_Y = 16;
@@ -13,6 +17,50 @@ export default class Story extends Phaser.Scene {
         this.startY = 1;
 
         this.tile;
+
+        this.canPlay = true;
+    }
+
+    introScene() {
+        this.blackOverlay.setAlpha(1);
+
+        this.time.delayedCall(3000, () => {
+            this.startMusic.play();
+
+            this.time.delayedCall(1000, () => {
+                this.static.setAlpha(1);
+            });
+
+            this.time.delayedCall(10000, () => {
+                this.blackOverlay.fadeIn(2000);
+            });
+
+            this.time.delayedCall(19000, () => {
+                this.stopMusic.play()
+                
+            });
+
+            this.time.delayedCall(21900, () => {
+                this.startMusic.stop()
+                this.static.setAlpha(0);
+                this.canPlay = true;
+            });
+        });
+
+    }
+
+    gameOverScene() {
+        this.canPlay = false;
+
+        this.static.setPosition(this.player.x, this.player.y);
+        this.static.setAlpha(1);
+
+        this.gameOverSound.play();
+
+        this.time.delayedCall(3000, () => {
+            this.blackOverlay.fadeOut(2000);
+        });
+
     }
 
     create() {    
@@ -59,6 +107,29 @@ export default class Story extends Phaser.Scene {
                 );
             });
         });
+
+        this.keys = new Keys(this);
+        
+        this.blackOverlay = new TransitionOverlay(this, 240, 160, 0);
+
+        this.startMusic = this.sound.add('songStart', {
+            volume: 0.5 
+        });
+
+        this.stopMusic = this.sound.add('suddenStop', {
+            volume: 0.5 
+        });
+
+        this.gameOverSound = this.sound.add('game_over_static', {
+            volume: 0.7,
+            loop: true
+        })
+
+        this.static = this.add.sprite(this.player.x, this.player.y, 'lapin_game_over').setScale(4/3).setAlpha(0);
+        this.static.anims.play('lapin_game_over', true);        
+
+        //this.introScene();
+
     }
 
     drawArrow(x1, y1, x2, y2, headLength = 10) {
@@ -114,7 +185,14 @@ export default class Story extends Phaser.Scene {
     }
 
     update(time) {
-        this.player.update(time, this.ground);
-    } 
+        if (this.canPlay) {
+            this.player.update(time, this.ground); 
+
+            if (this.keys.isEsc()) {
+                this.gameOverScene();
+            }
+        }
+
+    }
 
 }

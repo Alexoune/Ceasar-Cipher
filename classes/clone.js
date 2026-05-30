@@ -13,8 +13,8 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
         this.scene.physics.add.existing(this);
         this.setCollideWorldBounds(true);
 
-        this.body.setSize(12,12);
-        this.body.setOffset(this.displayWidth/4, this.displayHeight/2); 
+        this.body.setSize(8,8);
+        this.body.setOffset(this.displayWidth/4 + 2, this.displayHeight/2 + 1); 
 
         this.setScale(4/3);
 
