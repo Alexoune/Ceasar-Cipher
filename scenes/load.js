@@ -18,12 +18,19 @@ export default class AboutUs extends Phaser.Scene {
         this.load.image('hitbox', 'assets/hitbox.png');
 
         this.load.image('black', 'assets/black-canvas.png');
-        
+
+        this.load.image('night_sky', 'assets/night_sky.png');
+        this.load.image('front_cloud1', 'assets/front_cloud1.png');
+        this.load.image('front_cloud2', 'assets/front_cloud2.png');
+        this.load.image('night_city', 'assets/night_city.png');
+        this.load.image('night_back_city', 'assets/night_back_city.png');
+
         this.load.image('tileset', 'assets/tilesheet.png');
         this.load.tilemapTiledJSON('build', 'assets/tilemaps/build.json');
         this.load.tilemapTiledJSON('map', 'assets/tilemaps/map.json');
 
         this.load.audio('songStart', 'assets/musiques/Song-of-the-Century.mp3');
+        this.load.audio('songCredits', 'assets/musiques/Last-Night-on-Earth.mp3');
 
         this.load.audio('suddenStop', 'assets/sound_effects/sudden-stop.mp3');
         this.load.audio('game_over_static', 'assets/sound_effects/radio-static-cb.mp3');
@@ -137,7 +144,7 @@ export default class AboutUs extends Phaser.Scene {
             repeat: -1
         });
 
-        this.scene.switch('menuScreen');
+        this.scene.switch('endCredit');
     }
 
 }

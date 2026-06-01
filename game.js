@@ -4,6 +4,7 @@ import AboutUs from "./scenes/aboutUs.js";
 import Load from "./scenes/load.js";
 import Story from './scenes/story.js';
 import LevelBuilder from './scenes/levelbuilder.js';
+import EndCredit from './scenes/endCredit.js';
 
 import Player from './classes/player.js';
 
@@ -20,7 +21,7 @@ const config = {
        debug: true
     }
   },
-  scene: [Load, MenuScreen, AboutUs, Story, LevelBuilder]
+  scene: [Load, MenuScreen, AboutUs, Story, LevelBuilder, EndCredit]
 };
 
 const game = new Phaser.Game(config);
