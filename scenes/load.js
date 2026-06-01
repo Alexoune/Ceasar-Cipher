@@ -19,6 +19,8 @@ export default class AboutUs extends Phaser.Scene {
 
         this.load.image('black', 'assets/black-canvas.png');
 
+        this.load.spritesheet('letters', 'assets/letters.png', { frameWidth:6, frameHeight:6});
+
         this.load.image('night_sky', 'assets/night_sky.png');
         this.load.image('front_cloud1', 'assets/front_cloud1.png');
         this.load.image('front_cloud2', 'assets/front_cloud2.png');
