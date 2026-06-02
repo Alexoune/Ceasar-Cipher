@@ -1,4 +1,5 @@
 import TransitionOverlay from '../classes/transitionOverlay.js';
+import EngineText from '../classes/engineText.js';
 
 const SCREEN_WIDTH = 736;
 const SCREEN_HEIGHT = 480;
@@ -51,112 +52,14 @@ export default class EndCredit extends Phaser.Scene {
             this.blackOverlay.fadeIn(4000);
         });*/
 
-        this.drawPhrase(10, 10, "pourquoi arrache-t-il mes entrailles!", 50);
+        this.engineText = new EngineText(this);
+
+        this.engineText.drawPhrase(10, 10, "veuillez me serrer la pogne, dont!", 50);
 
         this.time.delayedCall(4000, () => {
-            this.letterGroup.clear(true, true);
+            this.engineText.clearLetters();
         });
         
-    }
-
-    drawPhrase(x, y, text, delay) {
-        for (let i = 0; i < text.length; i++) {
-            this.time.delayedCall(delay*i, () => {
-                let idx = 0;
-
-                switch (text[i]) {
-                    case '?':
-                        idx = this.letterList.indexOf('.');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('?');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 3, idx);
-                        break;
-
-                    case '!':
-                        idx = this.letterList.indexOf('.');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('!');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 3, idx);
-                        break;
-
-                    case 'é':
-                        idx = this.letterList.indexOf('e');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('é');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'è':
-                        idx = this.letterList.indexOf('e');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('è');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'ê':
-                        idx = this.letterList.indexOf('e');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('ê');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'à':
-                        idx = this.letterList.indexOf('a');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('è');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'â':
-                        idx = this.letterList.indexOf('a');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('ê');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'ù':
-                        idx = this.letterList.indexOf('u');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('è');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'û':
-                        idx = this.letterList.indexOf('u');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('ê');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'ô':
-                        idx = this.letterList.indexOf('o');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf('ê');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y - 4, idx);
-                        break;
-
-                    case 'ç':
-                        idx = this.letterList.indexOf('c');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-                        idx = this.letterList.indexOf(',');
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y + 4, idx);
-                        break;
-    
-                    default:
-                        idx = this.letterList.indexOf(text[i]);
-                        this.drawLetter(x + i*2*(this.letterLength + 1),  y, idx);
-
-                }
-
-            });
-        }
-
-    }
-
-    drawLetter(x, y, idx) {
-        let letter = this.add.sprite(0, 0, 'letters', idx).setScale(2);
-        letter.setPosition(x + letter.displayWidth/2, y + letter.displayHeight/2);
-        this.letterGroup.add(letter);
     }
 
     update(time, delta) {
@@ -165,7 +68,6 @@ export default class EndCredit extends Phaser.Scene {
         this.fr_3.tilePositionX += this.scrollX / 4 * delta / 1000;
         this.fr_4.tilePositionX += this.scrollX / 8 * delta / 1000;
 
-        
     } 
 
 }

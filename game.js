@@ -21,7 +21,7 @@ const config = {
        debug: true
     }
   },
-  scene: [Load, MenuScreen, AboutUs, Story, LevelBuilder, EndCredit]
+  scene: [Load, Titre, MenuScreen, AboutUs, Story, LevelBuilder, EndCredit]
 };
 
 const game = new Phaser.Game(config);

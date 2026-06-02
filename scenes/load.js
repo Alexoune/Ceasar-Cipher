@@ -146,7 +146,7 @@ export default class AboutUs extends Phaser.Scene {
             repeat: -1
         });
 
-        this.scene.switch('endCredit');
+        this.scene.switch('menuScreen');
     }
 
 }
