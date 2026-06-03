@@ -38,7 +38,8 @@ export default class AboutUs extends Phaser.Scene {
         this.engineText.drawPhrase(366, 16, "remerciements à", 0);
         this.engineText.drawPhrase(382, 32, "corinne philippon", 0);
         this.engineText.drawPhrase(382, 48, "william desmarais", 0);
-        this.engineText.drawPhrase(382, 64, "copilot", 0);
+        this.engineText.drawPhrase(382, 64, "loic fillion", 0);
+        this.engineText.drawPhrase(382, 80, "copilot", 0);
 
         this.black = new TransitionOverlay(this, 0, 0, 1);
         this.black.setScale(10);

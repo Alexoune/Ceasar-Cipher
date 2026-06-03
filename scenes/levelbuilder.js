@@ -3,7 +3,7 @@ import Clone from "../classes/clone.js";
 import TileOverlay from "../classes/tileOverlay.js";
 
 import { tileGroups, tileRecipes } from "../data/autotileData.js";
-import { vectorMap } from "../data/moveData.js";
+import { vectorMap, moveInputs } from "../data/moveData.js";
 
 import Keys from "../classes/keys.js";
 
@@ -20,12 +20,16 @@ export default class LevelBuilder extends Phaser.Scene {
 
         this.check;
 
+        this.storedLevel;
+        this.storedLayer; 
+        this.i;
+
         this.tile;
         this.tileGroup;
         this.recipe;
         this.edgeTile;
 
-        this.spawning = false;
+        this.spawning = 0;
 
     }
 
@@ -81,6 +85,13 @@ export default class LevelBuilder extends Phaser.Scene {
         this.tileOverlay = new TileOverlay(this, 0, 0);
 
         this.keys = new Keys(this);
+
+        this.textLayer = this.add.text(0, 0, "").setDepth(99999999);
+        this.textAutotile = this.add.text(0, 16, "").setDepth(99999999);
+
+        this.textStart = this.add.text(0, 32, "").setDepth(99999999);
+        this.textSpawning = this.add.text(0, 48, "").setDepth(99999999);
+
     }
 
     drawArrow(x1, y1, x2, y2, headLength = 10) {
@@ -103,7 +114,7 @@ export default class LevelBuilder extends Phaser.Scene {
     }
 
     createClone() {
-        if (!this.spawning) return;
+        if (this.spawning < 1) return;
 
         let clone = new Clone(this, this.startX, this.startY);
 
@@ -112,12 +123,16 @@ export default class LevelBuilder extends Phaser.Scene {
     }
 
     moveClones(layer) {
+        this.g.clear()
+
         for (let i = 0; i < this.cloneList.length; i++) {
             this.cloneList[i].moveClone(layer);
         }
     }
 
     stopClones(layer) {
+        this.g.lineStyle(4, 0xffffff, 1);
+
         for (let i = 0; i < this.cloneList.length; i++) {
             this.cloneList[i].stopClone(layer);
         }
@@ -133,153 +148,104 @@ export default class LevelBuilder extends Phaser.Scene {
         return null;
     }
 
-    putTile(layer, tile, x, y) {
-        if (tile == 1) {
-            layer.putTileAt(-1, x, y);
-            return;
-        }
-
-        layer.putTileAt(tile, x, y);
-    }
-
-    fixTile(layer, x, y) {
-        this.tile = layer.layer.data[y][x].index - 1;
-
-        if (this.tile < 0 || !tileRecipes[this.tile]) {
-            return;
-        }
-
-        this.tileGroup = tileGroups[this.tile];
-
-        if (!this.tileGroup) {
-            return;
-        }
-
-        this.recipe = "";
-
-        for (let i = 0; i < vectorMap.length; i++) {
-            if (x + vectorMap[i][0] > layer.layer.width - 1 || x + vectorMap[i][0] < 0) continue;
-            if (y + vectorMap[i][1] > layer.layer.height - 1 || y + vectorMap[i][1] < 0) continue;
-
-            this.edgeTile = layer.layer.data[y + vectorMap[i][1]][x + vectorMap[i][0]].index - 1
-
-            if (this.tileGroup === tileGroups[this.edgeTile]) {
-                this.recipe += "1";
-            } else {
-                this.recipe += "0";
-            }
-        }
-
-        for (let t = 0; t < tileGroups.length; t++) {
-            if (tileGroups[t] != this.tileGroup) continue;
-            if (!tileRecipes[t].includes(this.recipe)) continue;
-
-            layer.putTileAt(t + 1, x, y);
-            return
-        }
-        
-    }
-
     copyLevel() {
-        let storedLevel = "";
+        this.storedLevel = "";
 
-        storedLevel += `
-    {
-        "id": 1,
-        "name": "Ground",
-        "opacity": 1.0,
-        "type": "tilelayer",
-        "visible": true,
-        "x": 0,
-        "y": 0,
-        "width": 23,
-        "height": 15,
-        "data": [
+        this.storedLevel += `
+{
+    "id": 1,
+    "name": "Ground",
+    "opacity": 1.0,
+    "type": "tilelayer",
+    "visible": true,
+    "x": 0,
+    "y": 0,
+    "width": 23,
+    "height": 15,
+    "data": [
         `;
 
-        storedLevel += this.copyLayer(this.ground);
+        this.storedLevel += this.copyLayer(this.ground);
 
-        storedLevel += `
-        ],
-        "properties": [
-            {
-            "name": "collider",
-            "type": "bool",
-            "value": false
-            }
-        ]
-    }, {
-        "id": 2,
-        "name": "Foreground",
-        "opacity": 1.0,
-        "type": "tilelayer",
-        "visible": true,
-        "x": 0,
-        "y": 0,
-        "width": 23,
-        "height": 15,
-        "data": [
+        this.storedLevel += `
+    ],
+    "properties": [
+        {
+        "name": "collider",
+        "type": "bool",
+        "value": false
+        }
+    ]
+}, {
+    "id": 2,
+    "name": "Foreground",
+    "opacity": 1.0,
+    "type": "tilelayer",
+    "visible": true,
+    "x": 0,
+    "y": 0,
+    "width": 23,
+    "height": 15,
+    "data": [
         `;
 
-        storedLevel += this.copyLayer(this.foreground);
+        this.storedLevel += this.copyLayer(this.foreground);
 
-        storedLevel += `
-        ],
-        "properties": [
-            {
-            "name": "collider",
-            "type": "bool",
-            "value": false
-            }
-        ]
-    }, {
-        "id": 3,
-        "name": "Background",
-        "opacity": 1.0,
-        "type": "tilelayer",
-        "visible": true,
-        "x": 0,
-        "y": 0,
-        "width": 23,
-        "height": 15,
-        "data": [
+        this.storedLevel += `
+    ],
+    "properties": [
+        {
+        "name": "collider",
+        "type": "bool",
+        "value": false
+        }
+    ]
+}, {
+    "id": 3,
+    "name": "Background",
+    "opacity": 1.0,
+    "type": "tilelayer",
+    "visible": true,
+    "x": 0,
+    "y": 0,
+    "width": 23,
+    "height": 15,
+    "data": [
         `;
 
-        storedLevel += this.copyLayer(this.background);
+        this.storedLevel += this.copyLayer(this.background);
 
-        storedLevel += `
-        ],
-        "properties": [
-            {
-            "name": "collider",
-            "type": "bool",
-            "value": false
-            }
-        ]
-    }
+        this.storedLevel += `
+    ],
+    "properties": [
+        {
+        "name": "collider",
+        "type": "bool",
+        "value": false
+        }
+    ]
+}
         `;
 
-        navigator.clipboard.writeText(storedLevel);
+        navigator.clipboard.writeText(this.storedLevel);
     }
 
     copyLayer(layer) {
-        let storedLayer = "";
-        let tile;
+        this.storedLayer = "";
+        this.i;
 
         for (let y = 0; y < layer.layer.height; y++) {
             for (let x = 0; x < layer.layer.width; x++) {
-                tile = layer.layer.data[y][x].index;
-                if (tile < 0) tile = 0;
+                this.i = layer.layer.data[y][x].index;
+                if (this.i < 0) this.i = 0;
 
-                storedLayer += (tile + ",");
+                this.storedLayer += (this.i + ",");
             }
         }
 
-        storedLayer = storedLayer.slice(0,-1);
+        this.storedLayer = this.storedLayer.slice(0,-1);
 
-        //navigator.clipboard.writeText(storedLayer);
-
-        return storedLayer;
+        return this.storedLayer;
 
     }
 
@@ -291,6 +257,33 @@ export default class LevelBuilder extends Phaser.Scene {
         if (this.keys.isQ()) {
             this.copyLevel();
         }
+
+        if (this.keys.isS()) {
+            this.spawning = 1 - this.spawning;
+        }
+
+        if (this.keys.isM()) {
+            this.startX = this.tileOverlay.gridX;
+            this.startY = this.tileOverlay.gridY;
+        }
+
+        if (this.keys.isR()) {
+            this.player.resetPosition(this.startX, this.startY);
+            this.player.cloneCount = 0;
+            moveInputs.length = 0;
+            
+            this.cloneGroup.clear(true, true);
+            this.cloneList.length = 0;
+
+            this.g.clear();
+        }
+
+        this.textLayer.setText('Layer: ' + this.tileOverlay.layer);
+        this.textAutotile.setText('Autotile: ' + this.tileOverlay.autotile);
+
+        this.textStart.setText('Start coords: ' + this.startX + ', ' + this.startY);
+        this.textSpawning.setText('Spawning: ' + this.spawning);
+
     } 
 
 }

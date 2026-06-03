@@ -188,7 +188,7 @@ export default class Story extends Phaser.Scene {
         if (this.canPlay) {
             this.player.update(time, this.ground); 
 
-            if (this.keys.isEsc()) {
+            if (this.keys.isR()) {
                 this.gameOverScene();
             }
         }

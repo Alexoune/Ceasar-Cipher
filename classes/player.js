@@ -92,7 +92,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 else if (this.xAxis == 0 && this.yAxis > 0) this.anims.play("lapin_sang_down", true);
                 else if (this.xAxis == 0 && this.yAxis < 0) this.anims.play("lapin_sang_up", true);
 
-                this.setVelocity(this.vx,this.vy);
+                this.setVelocity(this.vx, this.vy);
 
             }
         } else {
@@ -113,13 +113,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             
             this.setVelocity(this.vx,this.vy);
 
-            this.mapX = this.nextMapX;
-            this.mapY = this.nextMapY;
-
-            this.setPosition(
-                MAP_OFFSET_X + this.mapX*TILE_LENGTH,
-                MAP_OFFSET_Y + this.mapY*TILE_LENGTH
-            );
+            this.resetPosition(this.nextMapX, this.nextMapY);
 
             if (moveInputs.length % this.cloneLateFactor == 0 && this.cloneCount < this.cloneLimit) {
                 this.scene.createClone();
@@ -166,6 +160,20 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             this.nextMapX = this.mapX;
             this.nextMapY = this.mapY;
         }
+
+    }
+
+    resetPosition(x, y) {
+        this.mapX = x;
+        this.mapY = y;
+
+        this.setPosition(
+            MAP_OFFSET_X + this.mapX*TILE_LENGTH,
+            MAP_OFFSET_Y + this.mapY*TILE_LENGTH
+        );
+
+        this.nextMapX = x;
+        this.nextMapY = y;
 
     }
 
