@@ -21,6 +21,9 @@ export default class AboutUs extends Phaser.Scene {
 
         this.load.spritesheet('letters', 'assets/letters.png', { frameWidth:6, frameHeight:6});
 
+        this.load.spritesheet('doors', 'assets/door_animations.png', { frameWidth:34, frameHeight:34});
+        this.load.spritesheet('buttons', 'assets/button_frames.png', { frameWidth:34, frameHeight:34});
+
         this.load.image('night_sky', 'assets/night_sky.png');
         this.load.image('front_cloud1', 'assets/front_cloud1.png');
         this.load.image('front_cloud2', 'assets/front_cloud2.png');
@@ -145,6 +148,37 @@ export default class AboutUs extends Phaser.Scene {
             frameRate: 4,
             repeat: -1
         });
+
+        
+        // Animation portes
+        this.anims.create({
+            key: 'blue_door_close',
+            frames: this.anims.generateFrameNumbers('doors', { start: 0, end: 4 }),
+            frameRate: 8,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: 'blue_door_open',
+            frames: this.anims.generateFrameNumbers('doors', { start: 4, end: 8 }),
+            frameRate: 8,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: 'purple_door_close',
+            frames: this.anims.generateFrameNumbers('doors', { start: 9, end: 13 }),
+            frameRate: 8,
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: 'purple_door_open',
+            frames: this.anims.generateFrameNumbers('doors', { start: 13, end: 17 }),
+            frameRate: 8,
+            repeat: 0
+        });
+
 
         this.scene.switch('levelBuilder');
     }

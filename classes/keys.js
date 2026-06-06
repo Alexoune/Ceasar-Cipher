@@ -54,8 +54,11 @@ export default class Keys {
     }
 
     isSpace(isDrag) {
-        return this.space.isDown && isDrag;
-        return Phaser.Input.Keyboard.JustDown(this.space);
+        if (isDrag) {
+            return this.space.isDown && isDrag;
+        } else {
+            return Phaser.Input.Keyboard.JustDown(this.space);
+        }
     }
 
     isE() {

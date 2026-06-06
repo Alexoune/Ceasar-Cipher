@@ -44,13 +44,18 @@ export default class LevelBuilder extends Phaser.Scene {
         this.ground = this.map.createDynamicLayer('Ground', this.tileset, 0, 0);
         this.foreground = this.map.createDynamicLayer('Foreground', this.tileset, 0, 0);
 
+        this.ground.setCollision([9,10,13,14,15,16,17,18], true);
+        this.foreground.setCollision([9,10,13,14,15,16,17,18], true);
+
         this.layerList = [this.background, this.ground, this.foreground];
 
         this.player = new Player(this, this.startX, this.startY);
         this.physics.add.collider(this.player, this.ground);
+        this.physics.add.collider(this.player, this.foreground);
 
         this.cloneGroup = this.add.group();
         this.physics.add.collider(this.cloneGroup, this.ground);
+        this.physics.add.collider(this.cloneGroup, this.foreground);
         this.cloneList = [];
 
         this.physics.add.overlap(this.player, this.cloneGroup, (p, c) => {
@@ -135,6 +140,12 @@ export default class LevelBuilder extends Phaser.Scene {
 
         for (let i = 0; i < this.cloneList.length; i++) {
             this.cloneList[i].stopClone(layer);
+        }
+    }
+
+    cloneDepthSort() {
+        for (let i = 0; i < this.cloneList.length; i++) {
+            this.cloneList[i].setDepth(this.cloneList[i].y);
         }
     }
 
@@ -250,7 +261,7 @@ export default class LevelBuilder extends Phaser.Scene {
     }
 
     update(time) {
-        this.player.update(time, this.ground);
+        this.player.update(time, this.layerList);
 
         this.tileOverlay.update(time);
 

@@ -1,6 +1,7 @@
 import Keys from "../classes/keys.js";
 
 import { directionMap, moveInputs } from "../data/moveData.js";
+import { doorKeyData } from "../data/doorKeyData.js";
 
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
@@ -44,6 +45,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.cloneLimit = 1;
         this.cloneCount = 0;
 
+        this.tile;
+
         this.pressed = false;
         this.moving = false;
 
@@ -53,16 +56,19 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     }
 
-    update(time, layer) {
+    update(time, layers) {
+        this.setDepth(this.y);
+        this.scene.cloneDepthSort();
+
         if (this.moving) {
-            this.movement(time, layer);
+            this.movement(time, layers);
         } else {
-            this.inputs(time, layer);
+            this.inputs(time, layers);
         }
 
     }
 
-    inputs(time, layer) {
+    inputs(time, layers) {
         this.xAxis = (+this.keys.isRight()) - (+this.keys.isLeft());
         this.yAxis = (+this.keys.isDown()) - (+this.keys.isUp());
 
@@ -75,17 +81,20 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 this.nextMapX += this.xAxis;
                 this.nextMapY += this.yAxis;
 
-                if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
-                    this.nextMapX = this.mapX;
-                    this.nextMapY = this.mapY;
+                for (let layer of layers) {
+                    if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
+                        this.nextMapX = this.mapX;
+                        this.nextMapY = this.mapY;
+                    }
+                
                 }
 
                 this.vx = this.xAxis * this.v;
                 this.vy = this.yAxis * this.v;
 
-                this.pushClone(layer);
+                this.pushClone(layers);
 
-                this.scene.moveClones(layer);
+                this.scene.moveClones(layers);
 
                 if (this.xAxis > 0 && this.yAxis == 0) this.anims.play("lapin_sang_right", true);
                 else if (this.xAxis < 0 && this.yAxis == 0) this.anims.play("lapin_sang_left", true);
@@ -100,7 +109,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    movement(time, layer) {
+    movement(time, layers) {
         this.elapsed = (time - this.startPressTime)/1000;
 
         if (this.elapsed >= this.t) {
@@ -120,10 +129,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 this.cloneCount += 1;
             }
 
+            this.pressButtonCheck(layers);
+
             this.anims.stop()
             this.setFrame(4);
 
-            this.scene.stopClones(layer);
+            this.scene.stopClones(layers);
 
         }
     }
@@ -134,31 +145,51 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         });
     }
 
-    pushClone(layer) {
+    pressButtonCheck(layers) {
+        for (let layer of layers) {
+            this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
+
+            if (this.tile == 4 || this.tile == 5) {
+                for (let i = 0; i < doorKeyData.length; i++) {
+                    if (doorKeyData[i][0].gridX == this.mapX && doorKeyData[i][0].gridY == this.mapY) {
+                        doorKeyData[i][1].openDoor(layer);
+                        return;
+                    }
+                }
+            }
+        }
+    
+    }
+
+    pushClone(layers) {
         this.cloneToPush = this.scene.getCloneToPush(this);
 
         if(this.cloneToPush) {
             this.pushX = this.cloneToPush.mapX + this.xAxis;
             this.pushY = this.cloneToPush.mapY + this.yAxis;
-            
-            if(!this.scene.checkCollisionAtSquare(this.pushX, this.pushY, layer)) {
-                this.cloneToPush.vx = (this.cloneToPush.nextMapX - this.cloneToPush.mapX)*this.v;
-                this.cloneToPush.vy = (this.cloneToPush.nextMapY - this.cloneToPush.mapY)*this.v;
 
-                this.cloneToPush.nextMapX = this.pushX;
-                this.cloneToPush.nextMapY = this.pushY;
+            for (let layer of layers) {
+                if(!this.scene.checkCollisionAtSquare(this.pushX, this.pushY, layer)) {
+                    this.cloneToPush.vx = (this.cloneToPush.nextMapX - this.cloneToPush.mapX)*this.v;
+                    this.cloneToPush.vy = (this.cloneToPush.nextMapY - this.cloneToPush.mapY)*this.v;
 
-            } else {
-                this.nextMapX = this.mapX;
-                this.nextMapY = this.mapY;
+                    this.cloneToPush.nextMapX = this.pushX;
+                    this.cloneToPush.nextMapY = this.pushY;
+
+                } else {
+                    this.nextMapX = this.mapX;
+                    this.nextMapY = this.mapY;
+                }
             }
 
             return
         }
-            
-        if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
-            this.nextMapX = this.mapX;
-            this.nextMapY = this.mapY;
+
+        for (let layer of layers) {
+            if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
+                this.nextMapX = this.mapX;
+                this.nextMapY = this.mapY;
+            }
         }
 
     }

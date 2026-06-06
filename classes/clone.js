@@ -45,15 +45,17 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
 
     }
 
-    moveClone(layer) {
+    moveClone(layers) {
         this.anims.play(this.animation, true);
 
         this.vx += (this.nextMapX - this.mapX)*this.v;
         this.vy += (this.nextMapY - this.mapY)*this.v;
 
-        if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
-            this.nextMapX = this.mapX;
-            this.nextMapY = this.mapY;
+        for (let layer of layers) {
+            if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
+                this.nextMapX = this.mapX;
+                this.nextMapY = this.mapY;
+            }
         }
 
         this.lastMapX = this.mapX;
@@ -68,7 +70,7 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
 
     }   
 
-    stopClone(layer) {
+    stopClone(layers) {
         this.anims.stop()
         this.setFrame(4);
 
@@ -92,8 +94,10 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
             this.nextMapY*TILE_LENGTH + MAP_OFFSET_Y
         );
 
-        if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
-            this.isCollide = true;
+        for (let layer of layers) {
+            if (this.scene.checkCollisionAtSquare(this.nextMapX, this.nextMapY, layer)) {
+                this.isCollide = true;
+            }
         }
 
         this.vx = 0; 

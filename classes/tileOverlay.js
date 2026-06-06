@@ -1,7 +1,11 @@
+import Button from "../classes/level_button.js";
+import Door from "../classes/level_door.js";
+
 import Keys from "../classes/keys.js";
 
 import { tileGroups, tileRecipes } from "../data/autotileData.js";
 import { vectorMap } from "../data/moveData.js";
+import { doorKeyData } from "../data/doorKeyData.js";
 
 const TILE_LENGTH = 32;
 
@@ -15,6 +19,7 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
         this.setCollideWorldBounds(true);
 
         this.setAlpha(0.75);
+        this.setDepth(1000000);
 
         this.keys = new Keys(this.scene);
         this.mouse = this.scene.input.activePointer;
@@ -38,36 +43,42 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
         this.autotile = 1;
 
         this.layerList = this.scene.layerList;
-        this.layer = 0;
+        this.layer = 1;
 
-        this.hasPlacedButton = false;
+        this.placeDoorMode = false;
 
     }
 
     putTile(layer, x, y) {
         this.putTileOnLayer(layer, this.tile + 1, x, y);
 
-        if (this.tile == 4) {
-            this.hasPlacedButton = true;
-            this.tile = 8;
+        if (this.tile == 4 || this.tile == 5) {
+            let button = new Button(this.scene, this.gridX, this.gridY, doorKeyData.length, this.tile);
+            doorKeyData.push([button]);
+
+            this.placeDoorMode = true;
+            this.tile += 4;
             return;
         }
 
-        if (this.tile == 5) {
-            this.hasPlacedButton = true;
-            this.tile = 9;
+        if (this.tile == 8 || this.tile == 9) {
+            let door = new Door(this.scene, this.gridX, this.gridY, doorKeyData.length, this.tile);
+            doorKeyData[doorKeyData.length - 1].push(door);
+
+            this.placeDoorMode = false;
+            this.tile -= 4;
             return;
         }
 
-        if (this.autotile > 0) {
-            this.fixTileAtPoint(layer, x, y);
+        if (this.autotile < 1) return;
 
-            for (let i = 0; i < vectorMap.length; i++) {
-                if (x + vectorMap[i][0] > layer.layer.width - 1 || x + vectorMap[i][0] < 0) continue;
-                if (x + vectorMap[i][1] > layer.layer.height - 1 || y + vectorMap[i][1] < 0) continue;
+        this.fixTileAtPoint(layer, x, y);
 
-                this.fixTileAtPoint(layer, x + vectorMap[i][0], y + vectorMap[i][1]);
-            }
+        for (let i = 0; i < vectorMap.length; i++) {
+            if (x + vectorMap[i][0] > layer.layer.width - 1 || x + vectorMap[i][0] < 0) continue;
+            if (x + vectorMap[i][1] > layer.layer.height - 1 || y + vectorMap[i][1] < 0) continue;
+
+            this.fixTileAtPoint(layer, x + vectorMap[i][0], y + vectorMap[i][1]);
 
         }
     
@@ -75,11 +86,47 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
 
     putTileOnLayer(layer, tile, x, y) {
         if (tile == 1) {
-            layer.putTileAt(-1, x, y);
+            this.deleteTile(layer, tile, x, y);
             return;
         }
 
         layer.putTileAt(tile, x, y);
+    }
+
+    deleteTile(layer, tile, x, y) {
+        let tileIndex = layer.layer.data[y][x].index - 1;
+
+        if (tileIndex == 4 || tileIndex == 5) {
+            for (let i = 0; i < doorKeyData.length; i++) {
+                if (doorKeyData[i][0].gridX == x && doorKeyData[i][0].gridY == y) {
+                    layer.putTileAt(-1, doorKeyData[i][1].gridX, doorKeyData[i][1].gridY);
+
+                    doorKeyData[i][0].destroy();
+                    doorKeyData[i][1].destroy();
+                    
+                    doorKeyData.splice(i, 1);
+                    
+                    break;
+                }
+            }
+        }
+
+        if (tileIndex == 8 || tileIndex == 9) {
+            for (let i = 0; i < doorKeyData.length; i++) {
+                if (doorKeyData[i][1].gridX == x && doorKeyData[i][1].gridY == y) {
+                    layer.putTileAt(-1, doorKeyData[i][0].gridX, doorKeyData[i][0].gridY);
+                    
+                    doorKeyData[i][0].destroy();
+                    doorKeyData[i][1].destroy();
+                    
+                    doorKeyData.splice(i, 1);
+
+                    break;
+                }
+            }
+        }
+
+        layer.putTileAt(-1, x, y);
     }
 
     fixTileAtPoint(layer, x, y) {
@@ -139,7 +186,10 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
 
         this.setCrop(this.imageX, this.imageY, TILE_LENGTH, TILE_LENGTH);
 
-        if (this.hasPlacedButton) {
+        if (this.placeDoorMode) {
+            if (this.keys.isSpace(false)) {
+                this.putTile(layer, this.gridX, this.gridY);
+            }
             return;
         }
 
@@ -151,13 +201,14 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
         if (this.keys.isNumberKey(5)) this.tile = 5;
         if (this.keys.isNumberKey(6)) this.tile = 12;
 
-        if (this.keys.isSpace(true)) {
+        if (this.keys.isSpace(!(this.tile == 4 || this.tile == 5 || this.tile == 8 || this.tile == 9))) {
             this.putTile(layer, this.gridX, this.gridY);
         }
 
         if (this.keys.isE()) {
             this.tile = layer.layer.data[this.gridY][this.gridX].index - 1;
             if (this.tile < 0) this.tile = 0;
+            if (this.tile == 8 || this.tile == 9) this.tile = 0;
         }
 
         if (this.keys.isA()) {
