@@ -31,15 +31,22 @@ export default class AboutUs extends Phaser.Scene {
         this.engineText.drawPhrase(32, 256, "félix bolduc", 0);
         this.engineText.drawPhrase(32, 272, "alexy rasavady", 0);
 
-        this.engineText.drawPhrase(16, 310, "tests", 0);
-        this.engineText.drawPhrase(32, 326, "lorick breton", 0);
-        this.engineText.drawPhrase(32, 342, "alexy rasavady", 0);
+        this.engineText.drawPhrase(16, 342, "musiques copyright", 0);
+        this.engineText.drawPhrase(32, 358, "song of the century - green day", 0);
+        this.engineText.drawPhrase(32, 374, "last night on earth - green day", 0);
 
-        this.engineText.drawPhrase(366, 16, "remerciements à", 0);
-        this.engineText.drawPhrase(382, 32, "corinne philippon", 0);
-        this.engineText.drawPhrase(382, 48, "william desmarais", 0);
-        this.engineText.drawPhrase(382, 64, "loic fillion", 0);
-        this.engineText.drawPhrase(382, 80, "copilot", 0);
+        this.engineText.drawPhrase(366, 16, "tests", 0);
+        this.engineText.drawPhrase(382, 32, "lorick breton", 0);
+        this.engineText.drawPhrase(382, 48, "alexy rasavady", 0);
+        this.engineText.drawPhrase(382, 64, "félix bolduc", 0);
+        this.engineText.drawPhrase(382, 80, "alfred lajeunesse", 0);
+
+        this.engineText.drawPhrase(366, 112, "remerciements à", 0);
+        this.engineText.drawPhrase(382, 128, "corinne philippon", 0);
+        this.engineText.drawPhrase(382, 144, "william desmarais", 0);
+        this.engineText.drawPhrase(382, 160, "loic fillion", 0);
+        this.engineText.drawPhrase(382, 176, "copilot", 0);
+
 
         this.black = new TransitionOverlay(this, 0, 0, 1);
         this.black.setScale(10);

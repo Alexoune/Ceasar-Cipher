@@ -2,8 +2,11 @@ import Player from "../classes/player.js";
 import Clone from "../classes/clone.js";
 
 import TransitionOverlay from "../classes/transitionOverlay.js";
+import EngineText from '../classes/engineText.js';
 
 import Keys from "../classes/keys.js";
+
+import { moveInputs } from "../data/moveData.js";
 
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
@@ -13,15 +16,32 @@ export default class Story extends Phaser.Scene {
     constructor() {
         super('story');
 
-        this.startX = 1;
-        this.startY = 1;
-
         this.tile;
 
-        this.canPlay = true;
+        this.canPlay = false;
+        this.isGameOver = false;
+        this.isIntro = true;
+
+        this.currentLevel;
+        this.entered = false;
+
+        this.cloneLateFactor;
+
+        this.startX;
+        this.startY;
+
+        this.exit1X;
+        this.exit1Y;
+        this.exit2X;
+        this.exit2Y;
+
+        this.spawning = 1;
     }
 
     introScene() {
+        this.setup(this.currentLevel);
+        this.player.update(0, this.layerList);
+
         this.blackOverlay.setAlpha(1);
 
         this.time.delayedCall(3000, () => {
@@ -35,14 +55,19 @@ export default class Story extends Phaser.Scene {
                 this.blackOverlay.fadeIn(2000);
             });
 
-            this.time.delayedCall(19000, () => {
-                this.stopMusic.play()
-                
+            this.time.delayedCall(20000, () => {
+                for (let i = 0; i < 100; i++) {
+                    this.time.delayedCall(i*60, () => {
+                        this.startMusic.setVolume(0.5 - i/200);
+                        this.static.setAlpha(1 - i/100);
+                    });
+                }
             });
 
-            this.time.delayedCall(21900, () => {
-                this.startMusic.stop()
-                this.static.setAlpha(0);
+            this.time.delayedCall(26000, () => {
+                this.startMusic.stop();
+                this.isIntro = true;
+                this.entered = true;
                 this.canPlay = true;
             });
         });
@@ -50,24 +75,146 @@ export default class Story extends Phaser.Scene {
     }
 
     gameOverScene() {
+        this.engineText.clearLetters()
+        
         this.canPlay = false;
 
         this.static.setPosition(this.player.x, this.player.y);
         this.static.setAlpha(1);
 
+        this.gameOverSound.setVolume(0.5);
         this.gameOverSound.play();
 
-        this.time.delayedCall(3000, () => {
+        this.time.delayedCall(1000, () => {
             this.blackOverlay.fadeOut(2000);
+        });
+
+        this.time.delayedCall(3000, () => {
+            this.engineText.drawKey(16, 12, 0);
+            this.engineText.drawPhrase(42, 16, "quitter", 0);
+
+            this.engineText.drawKey(16, 42, 1);
+            this.engineText.drawPhrase(42, 48, "poursuivre", 0);
+
+            this.engineText.drawKey(16, 72, 2);
+            this.engineText.drawPhrase(42, 78, "recommencer", 0);
+
+            this.isGameOver = true;
+
         });
 
     }
 
-    create() {    
-        this.g = this.add.graphics()
-        this.g.lineStyle(4, 0xffffff, 1);
+    restartScene() {
+        this.isGameOver = false;
 
-        this.map = this.make.tilemap({key: 'map'});
+        this.engineText.clearLetters();
+
+        for (let i = 0; i < 100; i++) {
+            this.time.delayedCall(20*i, () => {
+                this.static.setAlpha(1 - i/100);
+                this.gameOverSound.setVolume(0.5 - i/200);
+            });
+        }
+
+        this.time.delayedCall(2000, () => {
+            this.player.resetPosition(this.startX, this.startY);
+            this.player.cloneCount = 0;
+            moveInputs.length = 0;
+            
+            this.cloneGroup.clear(true, true);
+            this.cloneList.length = 0;
+
+            this.g.clear();
+        });
+
+        this.time.delayedCall(3000, () => {
+            this.blackOverlay.fadeIn(2000);
+
+            this.time.delayedCall(3000, () => {
+                this.canPlay = true;
+            });
+        });
+        
+    }
+
+    continueScene() {
+        this.isGameOver = false;
+
+        this.engineText.clearLetters();
+
+        this.blackOverlay.fadeIn(2000);
+
+        for (let i = 0; i < 100; i++) {
+            this.time.delayedCall(20*i, () => {
+                this.static.setAlpha(1 - i/100);
+                this.gameOverSound.setVolume(0.5 - i/200);
+            });
+        }
+
+        this.time.delayedCall(2500, () => {
+            this.canPlay = true;
+        });
+    }
+
+    exitScene() {
+        this.isGameOver = false;
+
+        this.engineText.clearLetters();
+
+        for (let i = 0; i < 100; i++) {
+            this.time.delayedCall(20*i, () => {
+                this.static.setAlpha(1 - i/100);
+                this.gameOverSound.setVolume(0.5 - i/200);
+            });
+        }
+
+        this.time.delayedCall(2500, () => {
+            this.reset();
+
+            this.time.delayedCall(50, () => {
+                this.entered = false;
+                this.scene.switch('menuScreen');
+            });
+        });
+    }
+
+    reEnterScene() {
+        this.blackOverlay.fadeIn(2000);
+
+        this.time.delayedCall(2500, () => {
+            this.canPlay = true;
+            this.entered = true;
+        });
+    }
+
+    reset() {
+        this.layerList.length = 0
+
+        this.player.cloneCount = 0;
+        moveInputs.length = 0;
+        
+        this.cloneGroup.clear(true, true);
+        this.cloneList.length = 0;
+
+        this.g.clear();
+        
+        this.cloneLateFactor = null;
+
+        this.startX = null;
+        this.startY = null;
+
+        this.exit1X = null;
+        this.exit1Y = null;
+        this.exit2X = null;
+        this.exit2Y = null;
+    
+    }
+
+    setup(level) {
+        this.currentLevel = level;
+
+        this.map = this.make.tilemap({key: level});
         this.tileset = this.map.addTilesetImage('spritefusion', 'tileset');
 
         this.background = this.map.createDynamicLayer('Background', this.tileset, 0, 0);
@@ -79,14 +226,32 @@ export default class Story extends Phaser.Scene {
 
         this.layerList = [this.background, this.ground, this.foreground];
 
-        this.player = new Player(this, this.startX, this.startY);
+        this.g = this.add.graphics();
+        this.g.lineStyle(4, 0xffffff, 1);
+
+        this.startX = this.map.layers[0].properties[0].startX;
+        this.startY = this.map.layers[0].properties[0].startY;
+
+        this.exit1X = this.map.layers[0].properties[0].exit1X;
+        this.exit1Y = this.map.layers[0].properties[0].exit1Y;
+        this.exit2X = this.map.layers[0].properties[0].exit2X;
+        this.exit2Y = this.map.layers[0].properties[0].exit2Y;
+
+        this.player.resetPosition(this.startX, this.startY);
         this.physics.add.collider(this.player, this.ground);
         this.physics.add.collider(this.player, this.foreground);
+        moveInputs.length = 0;
+
+        this.static.setPosition(this.player.x, this.player.y);
+
+        this.cloneLateFactor = this.map.layers[0].properties[0].cloneLateFactor;
+        this.player.cloneLateFactor = this.cloneLateFactor;
+        this.player.startX = this.startX;
+        this.player.startY = this.startY;
 
         this.cloneGroup = this.add.group();
         this.physics.add.collider(this.cloneGroup, this.ground);
         this.physics.add.collider(this.cloneGroup, this.foreground);
-        this.cloneList = [];
 
         this.physics.add.overlap(this.player, this.cloneGroup, (p, c) => {
             p.setVelocity(0,0);
@@ -116,10 +281,23 @@ export default class Story extends Phaser.Scene {
                 );
             });
         });
+    }
 
+    create() {
         this.keys = new Keys(this);
-        
-        this.blackOverlay = new TransitionOverlay(this, 240, 160, 0);
+
+        this.blackOverlay = new TransitionOverlay(this, 240, 160, 1);
+        this.engineText = new EngineText(this);
+
+        this.player = new Player(this, 0, 0);
+        this.cloneGroup = this.add.group();
+        this.cloneList = [];
+
+        this.static = this.add.sprite(0, 0, 'lapin_game_over')
+            .setScale(4/3)
+            .setAlpha(0)
+            .setDepth(this.blackOverlay.depth + 1);
+        this.static.anims.play('lapin_game_over', true);
 
         this.startMusic = this.sound.add('songStart', {
             volume: 0.5 
@@ -130,14 +308,13 @@ export default class Story extends Phaser.Scene {
         });
 
         this.gameOverSound = this.sound.add('game_over_static', {
-            volume: 0.7,
+            volume: 0.5,
             loop: true
-        })
+        });
 
-        this.static = this.add.sprite(this.player.x, this.player.y, 'lapin_game_over').setScale(4/3).setAlpha(0);
-        this.static.anims.play('lapin_game_over', true);        
+        this.currentLevel = 'level1';
 
-        //this.introScene();
+        if (!this.isIntro) this.introScene();
 
     }
 
@@ -160,50 +337,27 @@ export default class Story extends Phaser.Scene {
         return this.tile && this.tile.canCollide;
     }
 
-    createClone() {
-        let clone = new Clone(this, this.startX, this.startY);
-
-        this.cloneGroup.add(clone);
-        this.cloneList.push(clone);
-    }
-
-    moveClones(layers) {
-        this.g.clear()
-
-        for (let i = 0; i < this.cloneList.length; i++) {
-            this.cloneList[i].moveClone(layers);
-        }
-    }
-
-    stopClones(layers) {
-        this.g.lineStyle(4, 0xffffff, 1);
-
-        for (let i = 0; i < this.cloneList.length; i++) {
-            this.cloneList[i].stopClone(layers);
-        }
-    }
-
-    cloneDepthSort() {
-        for (let i = 0; i < this.cloneList.length; i++) {
-            this.cloneList[i].setDepth(this.cloneList[i].y);
-        }
-    }
-
-    getCloneToPush(pusher) {
-        for (let i = 0; i < this.cloneList.length; i++) {
-            if (this.cloneList[i].mapX == pusher.nextMapX && this.cloneList[i].mapY == pusher.nextMapY && this.cloneList[i].isCollide) {
-                return this.cloneList[i];
-            }
-        }
-
-        return null;
-    }
-
     update(time) {
-        if (this.canPlay) {
-            this.player.update(time, this.ground); 
+        if (!this.entered && this.isIntro) {
+            this.setup(this.currentLevel);
+            this.player.update(0, this.layerList);
+            this.reEnterScene();
+        }
 
-            if (this.keys.isR()) {
+        if (this.isGameOver) {
+            if (this.keys.isEnter()) this.continueScene();
+            if (this.keys.isR()) this.restartScene();
+            if (this.keys.isEsc()) this.exitScene();
+            return;
+        }
+
+        if (this.canPlay) {
+            this.player.update(time, this.layerList);
+
+            this.engineText.clearLetters();
+            this.engineText.drawKey(2, 2, 0);
+
+            if (this.keys.isEsc()) {
                 this.gameOverScene();
             }
         }

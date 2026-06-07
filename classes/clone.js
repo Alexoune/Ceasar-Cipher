@@ -1,4 +1,5 @@
 import { directionMap, moveInputs, vectorMap } from "../data/moveData.js";
+import { doorKeyData } from "../data/doorKeyData.js";
 
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
@@ -46,6 +47,8 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
     }
 
     moveClone(layers) {
+        if (this.scene.g) this.scene.g.clear();
+
         this.anims.play(this.animation, true);
 
         this.vx += (this.nextMapX - this.mapX)*this.v;
@@ -71,6 +74,8 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
     }   
 
     stopClone(layers) {
+        if (this.scene.g) this.scene.g.lineStyle(4, 0xffffff, 1);
+
         this.anims.stop()
         this.setFrame(4);
 
@@ -118,5 +123,30 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
         else if(this.deltaX == 0 && this.deltaY < 0) this.animation = "lapin_orange_up";
 
     }
-    
+
+    pressButtonCheck(layers) {
+        for (let layer of layers) {
+            this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
+
+            if (this.tile == 4 || this.tile == 5) {
+                for (let i = 0; i < doorKeyData.length; i++) {
+                    if (doorKeyData[i][0].gridX == this.mapX && doorKeyData[i][0].gridY == this.mapY) {
+                        doorKeyData[i][1].openDoor(layer);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    isOnExit(layers) {
+        for (let layer of layers) {
+            this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
+
+            if (this.tile == 19) {
+                return true;
+            }
+        }    
+    }
+   
 }

@@ -9,6 +9,7 @@ export default class Keys {
 
         this.space = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.esc = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+        this.enter = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 
         this.e = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
         this.a = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
@@ -17,6 +18,8 @@ export default class Keys {
         this.s = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         this.m = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M);
         this.r = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        this.i = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I);
+        this.k = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K);
 
         this.numbers = [
             this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ZERO),
@@ -60,6 +63,10 @@ export default class Keys {
             return Phaser.Input.Keyboard.JustDown(this.space);
         }
     }
+    
+    isEnter() {
+        return Phaser.Input.Keyboard.JustDown(this.enter);
+    }
 
     isE() {
         return Phaser.Input.Keyboard.JustDown(this.e);
@@ -87,6 +94,14 @@ export default class Keys {
 
     isR() {
         return Phaser.Input.Keyboard.JustDown(this.r);
+    }
+
+    isI() {
+        return Phaser.Input.Keyboard.JustDown(this.i);
+    }
+
+    isK() {
+        return Phaser.Input.Keyboard.JustDown(this.k);
     }
 
     isNumberKey(n) {

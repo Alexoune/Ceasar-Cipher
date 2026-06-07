@@ -2,6 +2,7 @@ import Keys from "../classes/keys.js";
 
 import { directionMap, moveInputs } from "../data/moveData.js";
 import { doorKeyData } from "../data/doorKeyData.js";
+import Clone from "./clone.js";
 
 const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
@@ -28,6 +29,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
         this.vx = 0;
         this.vy = 0;
+
+        this.startX = x;
+        this.startY = y;
 
         this.mapX = x;
         this.mapY = y;
@@ -58,7 +62,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     update(time, layers) {
         this.setDepth(this.y);
-        this.scene.cloneDepthSort();
+        if (this.scene.clone) this.scene.clone.setDepth(this.scene.clone.y);
+        //this.scene.cloneDepthSort();
 
         if (this.moving) {
             this.movement(time, layers);
@@ -92,9 +97,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 this.vx = this.xAxis * this.v;
                 this.vy = this.yAxis * this.v;
 
-                this.pushClone(layers);
-
-                this.scene.moveClones(layers);
+                if (this.scene.clone) {
+                    this.pushClone(layers);
+                    this.scene.clone.moveClone(layers);
+                }
 
                 if (this.xAxis > 0 && this.yAxis == 0) this.anims.play("lapin_sang_right", true);
                 else if (this.xAxis < 0 && this.yAxis == 0) this.anims.play("lapin_sang_left", true);
@@ -124,8 +130,9 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
             this.resetPosition(this.nextMapX, this.nextMapY);
 
-            if (moveInputs.length % this.cloneLateFactor == 0 && this.cloneCount < this.cloneLimit) {
-                this.scene.createClone();
+            if (moveInputs.length % this.cloneLateFactor == 0 && this.cloneCount < this.cloneLimit && this.scene.spawning) {
+                this.scene.clone = new Clone(this.scene, this.startX, this.startY);
+                this.scene.cloneGroup.add(this.scene.clone);
                 this.cloneCount += 1;
             }
 
@@ -134,7 +141,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             this.anims.stop()
             this.setFrame(4);
 
-            this.scene.stopClones(layers);
+            if (this.scene.clone) this.scene.clone.stopClone(layers);
 
         }
     }
@@ -158,28 +165,44 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
                 }
             }
         }
-    
+    }
+
+    isOnExit(layers) {
+        for (let layer of layers) {
+            this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
+
+            if (this.tile == 18) {
+                return true;
+            }
+        }
     }
 
     pushClone(layers) {
-        this.cloneToPush = this.scene.getCloneToPush(this);
+        this.cloneToPush = this.getCloneToPush();
 
         if(this.cloneToPush) {
             this.pushX = this.cloneToPush.mapX + this.xAxis;
             this.pushY = this.cloneToPush.mapY + this.yAxis;
 
+            let condition = false;
+
             for (let layer of layers) {
-                if(!this.scene.checkCollisionAtSquare(this.pushX, this.pushY, layer)) {
-                    this.cloneToPush.vx = (this.cloneToPush.nextMapX - this.cloneToPush.mapX)*this.v;
-                    this.cloneToPush.vy = (this.cloneToPush.nextMapY - this.cloneToPush.mapY)*this.v;
-
-                    this.cloneToPush.nextMapX = this.pushX;
-                    this.cloneToPush.nextMapY = this.pushY;
-
-                } else {
-                    this.nextMapX = this.mapX;
-                    this.nextMapY = this.mapY;
+                if (!this.scene.checkCollisionAtSquare(this.pushX, this.pushY, layer)) {
+                    condition = true;
+                    break;
                 }
+            }
+
+            if (condition) {
+                this.cloneToPush.vx = (this.cloneToPush.nextMapX - this.cloneToPush.mapX)*this.v;
+                this.cloneToPush.vy = (this.cloneToPush.nextMapY - this.cloneToPush.mapY)*this.v;
+
+                this.cloneToPush.nextMapX = this.pushX;
+                this.cloneToPush.nextMapY = this.pushY;
+
+            } else {
+                this.nextMapX = this.mapX;
+                this.nextMapY = this.mapY;
             }
 
             return
@@ -194,6 +217,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     }
 
+    getCloneToPush() {
+        if (this.scene.clone.mapX == this.nextMapX && this.scene.clone.mapY == this.nextMapY && this.scene.clone.isCollide) {
+            return this.scene.clone;
+        }
+
+        return null;
+    }
+
     resetPosition(x, y) {
         this.mapX = x;
         this.mapY = y;
@@ -206,6 +237,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.nextMapX = x;
         this.nextMapY = y;
 
+    }
+
+    resetClone() {
+        this.scene.clone = null;
     }
 
 }

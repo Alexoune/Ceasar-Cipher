@@ -15,6 +15,8 @@ export default class EndCredit extends Phaser.Scene {
 
         this.scrollX = 100;
 
+        this.startWaitTime = 0;
+
         //this.cloud = this.add.image(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 'front_cloud');
         //this.cloud.setScale(2);
 
@@ -54,11 +56,11 @@ export default class EndCredit extends Phaser.Scene {
 
         this.engineText = new EngineText(this);
 
-        this.engineText.drawPhrase(10, 10, "veuillez me serrer la pogne, dont!", 50);
+        /*this.engineText.drawPhrase(10, 10, "veuillez me serrer la pogne, dont!", 50);
 
         this.time.delayedCall(4000, () => {
             this.engineText.clearLetters();
-        });
+        });*/
         
     }
 

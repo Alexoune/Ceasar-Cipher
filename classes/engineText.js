@@ -103,9 +103,19 @@ export default class EngineText {
     }
 
     drawLetter(x, y, idx) {
-        let letter = this.scene.add.image(0, 0, 'letters', idx).setScale(2);
+        let letter = this.scene.add.image(0, 0, 'letters', idx)
+            .setScale(2)
+            .setDepth(100000000000000000000000000000001);
         letter.setPosition(x + letter.displayWidth/2, y + letter.displayHeight/2);
         this.scene.letters.add(letter);
+    }
+
+    drawKey(x, y, idx) {
+        let key = this.scene.add.image(0, 0, 'keys', idx)
+            .setScale(2)
+            .setDepth(100000000000000000000000000000002);
+        key.setPosition(x + key.displayWidth/2, y + key.displayHeight/2);
+        this.scene.letters.add(key);
     }
 
     clearLetters() {

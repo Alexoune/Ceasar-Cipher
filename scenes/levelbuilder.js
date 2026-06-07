@@ -29,20 +29,22 @@ export default class LevelBuilder extends Phaser.Scene {
         this.recipe;
         this.edgeTile;
 
+        this.cloneLateFactor = 3;
+
         this.spawning = 0;
 
     }
 
     create() {    
-        this.g = this.add.graphics()
-        this.g.lineStyle(4, 0xffffff, 1);
-
         this.map = this.make.tilemap({key: 'build'});
         this.tileset = this.map.addTilesetImage('spritefusion', 'tileset');
 
         this.background = this.map.createDynamicLayer('Background', this.tileset, 0, 0);
         this.ground = this.map.createDynamicLayer('Ground', this.tileset, 0, 0);
         this.foreground = this.map.createDynamicLayer('Foreground', this.tileset, 0, 0);
+
+        this.g = this.add.graphics()
+        this.g.lineStyle(4, 0xffffff, 1);
 
         this.ground.setCollision([9,10,13,14,15,16,17,18], true);
         this.foreground.setCollision([9,10,13,14,15,16,17,18], true);
@@ -93,10 +95,32 @@ export default class LevelBuilder extends Phaser.Scene {
 
         this.textLayer = this.add.text(0, 0, "").setDepth(99999999);
         this.textAutotile = this.add.text(0, 16, "").setDepth(99999999);
-
         this.textStart = this.add.text(0, 32, "").setDepth(99999999);
         this.textSpawning = this.add.text(0, 48, "").setDepth(99999999);
+        this.textCloneLate = this.add.text(0, 64, "").setDepth(99999999);
+        this.textEndBlue = this.add.text(256, 0, "").setDepth(99999999);
+        this.textEndPurple = this.add.text(256, 16, "").setDepth(99999999);
 
+        this.startSpeech();
+
+    }
+
+    startSpeech() {
+        console.log(`
+-- Contrôle du mode Level Builder! --
+    0 à 6 = Changer de tuile
+    Espace = Placer une tuile
+    E = Copier une tuile
+    L = Changer de "layer"
+    
+    A = Activer/Désactiver l'arrangement de tuile automatique
+    S = Activer/Désactiver l'apparition de clone
+    M = Définir la position de commencement du joueur/clone à la souris
+    I-K = Augmenter/Diminuer le décalage du clone
+    R = Réinitialiser le joueur/clone
+
+    Q = Copier le niveau dans le presse-papier
+        `);
     }
 
     drawArrow(x1, y1, x2, y2, headLength = 10) {
@@ -118,127 +142,80 @@ export default class LevelBuilder extends Phaser.Scene {
         return this.check && this.check.canCollide;
     }
 
-    createClone() {
-        if (this.spawning < 1) return;
-
-        let clone = new Clone(this, this.startX, this.startY);
-
-        this.cloneGroup.add(clone);
-        this.cloneList.push(clone);
-    }
-
-    moveClones(layer) {
-        this.g.clear()
-
-        for (let i = 0; i < this.cloneList.length; i++) {
-            this.cloneList[i].moveClone(layer);
-        }
-    }
-
-    stopClones(layer) {
-        this.g.lineStyle(4, 0xffffff, 1);
-
-        for (let i = 0; i < this.cloneList.length; i++) {
-            this.cloneList[i].stopClone(layer);
-        }
-    }
-
-    cloneDepthSort() {
-        for (let i = 0; i < this.cloneList.length; i++) {
-            this.cloneList[i].setDepth(this.cloneList[i].y);
-        }
-    }
-
-    getCloneToPush(pusher) {
-        for (let i = 0; i < this.cloneList.length; i++) {
-            if (this.cloneList[i].mapX == pusher.nextMapX && this.cloneList[i].mapY == pusher.nextMapY && this.cloneList[i].isCollide) {
-                return this.cloneList[i];
-            }
-        }
-
-        return null;
-    }
-
     copyLevel() {
-        this.storedLevel = "";
-
-        this.storedLevel += `
-{
-    "id": 1,
-    "name": "Ground",
-    "opacity": 1.0,
-    "type": "tilelayer",
-    "visible": true,
-    "x": 0,
-    "y": 0,
-    "width": 23,
-    "height": 15,
-    "data": [
-        `;
-
-        this.storedLevel += this.copyLayer(this.ground);
-
-        this.storedLevel += `
-    ],
-    "properties": [
-        {
-        "name": "collider",
-        "type": "bool",
-        "value": false
-        }
-    ]
-}, {
-    "id": 2,
-    "name": "Foreground",
-    "opacity": 1.0,
-    "type": "tilelayer",
-    "visible": true,
-    "x": 0,
-    "y": 0,
-    "width": 23,
-    "height": 15,
-    "data": [
-        `;
-
-        this.storedLevel += this.copyLayer(this.foreground);
-
-        this.storedLevel += `
-    ],
-    "properties": [
-        {
-        "name": "collider",
-        "type": "bool",
-        "value": false
-        }
-    ]
-}, {
-    "id": 3,
-    "name": "Background",
-    "opacity": 1.0,
-    "type": "tilelayer",
-    "visible": true,
-    "x": 0,
-    "y": 0,
-    "width": 23,
-    "height": 15,
-    "data": [
-        `;
-
-        this.storedLevel += this.copyLayer(this.background);
-
-        this.storedLevel += `
-    ],
-    "properties": [
-        {
-        "name": "collider",
-        "type": "bool",
-        "value": false
-        }
-    ]
-}
-        `;
+        this.storedLevel = `
+    {
+        "id": 1,
+        "name": "Ground",
+        "opacity": 1.0,
+        "type": "tilelayer",
+        "visible": true,
+        "x": 0,
+        "y": 0,
+        "width": 23,
+        "height": 15,
+        "data": [
+            ${this.copyLayer(this.ground)}
+        ],
+        "properties": [
+            {
+            "name": "collider",
+            "type": "bool",
+            "value": false,
+            "cloneLateFactor": ${this.cloneLateFactor},
+            "startX": ${this.startX},
+            "startY": ${this.startY},
+            "exit1X": ${this.tileOverlay.exitBlueX},
+            "exit1Y": ${this.tileOverlay.exitBlueY},
+            "exit2X": ${this.tileOverlay.exitPurpleX},
+            "exit2Y": ${this.tileOverlay.exitPurpleY}
+            }
+        ]
+    }, {
+        "id": 2,
+        "name": "Foreground",
+        "opacity": 1.0,
+        "type": "tilelayer",
+        "visible": true,
+        "x": 0,
+        "y": 0,
+        "width": 23,
+        "height": 15,
+        "data": [
+            ${this.copyLayer(this.foreground)}
+        ],
+        "properties": [
+            {
+            "name": "collider",
+            "type": "bool",
+            "value": false
+            }
+        ]
+    }, {
+        "id": 3,
+        "name": "Background",
+        "opacity": 1.0,
+        "type": "tilelayer",
+        "visible": true,
+        "x": 0,
+        "y": 0,
+        "width": 23,
+        "height": 15,
+        "data": [
+            ${this.copyLayer(this.background)}
+        ],
+        "properties": [
+            {
+            "name": "collider",
+            "type": "bool",
+            "value": false
+            }
+        ]
+    }
+    `;
 
         navigator.clipboard.writeText(this.storedLevel);
+        console.log('-- Niveau copié! --')
     }
 
     copyLayer(layer) {
@@ -261,6 +238,15 @@ export default class LevelBuilder extends Phaser.Scene {
     }
 
     update(time) {
+        this.textLayer.setText(`Layer: ${this.tileOverlay.layer}`);
+        this.textAutotile.setText(`Autotile: ${this.tileOverlay.autotile == 1}`);
+        this.textStart.setText(`Start coords: ${this.startX}, ${this.startY}`);
+        this.textSpawning.setText(`Spawning: ${this.spawning == 1}`);
+        this.textCloneLate.setText(`Clone interval shift: ${this.player.cloneLateFactor}`);
+
+        this.textEndBlue.setText(`Blue teleporter: ${this.tileOverlay.exitBlueX}, ${this.tileOverlay.exitBlueY}`);
+        this.textEndPurple.setText(`Purple teleporter: ${this.tileOverlay.exitPurpleX}, ${this.tileOverlay.exitPurpleY}`);
+
         this.player.update(time, this.layerList);
 
         this.tileOverlay.update(time);
@@ -276,24 +262,38 @@ export default class LevelBuilder extends Phaser.Scene {
         if (this.keys.isM()) {
             this.startX = this.tileOverlay.gridX;
             this.startY = this.tileOverlay.gridY;
+
+            this.player.startX = this.startX;
+            this.player.startY = this.startY;
+        }
+
+        if (this.keys.isI()) {
+            this.cloneLateFactor += 1;
+            if (this.cloneLateFactor > 8) this.cloneLateFactor = 8;
+            this.player.cloneLateFactor = this.cloneLateFactor;
+        }
+
+        if (this.keys.isK()) {
+            this.cloneLateFactor -= 1;
+            if (this.cloneLateFactor < 1) this.cloneLateFactor = 1;
+            this.player.cloneLateFactor = this.cloneLateFactor;
         }
 
         if (this.keys.isR()) {
             this.player.resetPosition(this.startX, this.startY);
             this.player.cloneCount = 0;
             moveInputs.length = 0;
-            
+
+            this.player.resetClone();
             this.cloneGroup.clear(true, true);
             this.cloneList.length = 0;
 
             this.g.clear();
         }
 
-        this.textLayer.setText('Layer: ' + this.tileOverlay.layer);
-        this.textAutotile.setText('Autotile: ' + this.tileOverlay.autotile);
-
-        this.textStart.setText('Start coords: ' + this.startX + ', ' + this.startY);
-        this.textSpawning.setText('Spawning: ' + this.spawning);
+        if (this.keys.isEsc()) {
+            this.scene.switch('menuScreen');
+        }
 
     } 
 

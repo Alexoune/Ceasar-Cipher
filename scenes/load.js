@@ -20,6 +20,7 @@ export default class AboutUs extends Phaser.Scene {
         this.load.image('black', 'assets/black-canvas.png');
 
         this.load.spritesheet('letters', 'assets/letters.png', { frameWidth:6, frameHeight:6});
+        this.load.spritesheet('keys', 'assets/inputs_logo.png', { frameWidth:12, frameHeight:12});
 
         this.load.spritesheet('doors', 'assets/door_animations.png', { frameWidth:34, frameHeight:34});
         this.load.spritesheet('buttons', 'assets/button_frames.png', { frameWidth:34, frameHeight:34});
@@ -31,8 +32,12 @@ export default class AboutUs extends Phaser.Scene {
         this.load.image('night_back_city', 'assets/night_back_city.png');
 
         this.load.image('tileset', 'assets/tilesheet.png');
+        
         this.load.tilemapTiledJSON('build', 'assets/tilemaps/build.json');
         this.load.tilemapTiledJSON('map', 'assets/tilemaps/map.json');
+
+        this.load.tilemapTiledJSON('level1', 'assets/tilemaps/level1.json');
+        this.load.tilemapTiledJSON('level2', 'assets/tilemaps/level2.json');
 
         this.load.audio('songStart', 'assets/musiques/Song-of-the-Century.mp3');
         this.load.audio('songCredits', 'assets/musiques/Last-Night-on-Earth.mp3');
@@ -180,7 +185,7 @@ export default class AboutUs extends Phaser.Scene {
         });
 
 
-        this.scene.switch('levelBuilder');
+        this.scene.switch('menuScreen');
     }
 
 }
