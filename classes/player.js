@@ -17,8 +17,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.scene.physics.add.existing(this);
         this.setCollideWorldBounds(true);
 
-        this.body.setSize(8,8);
-        this.body.setOffset(this.displayWidth/4 + 2, this.displayHeight/2) - 2; 
+        this.body.setSize(10,10);
+        this.body.setOffset(this.displayWidth/4 + 1, this.displayHeight/2) - 2; 
 
         this.setScale(4/3);
 
@@ -63,7 +63,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     update(time, layers) {
         this.setDepth(this.y);
         if (this.scene.clone) this.scene.clone.setDepth(this.scene.clone.y);
-        //this.scene.cloneDepthSort();
+
+        if (time == 0) return;
 
         if (this.moving) {
             this.movement(time, layers);
@@ -167,16 +168,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         }
     }
 
-    isOnExit(layers) {
-        for (let layer of layers) {
-            this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
-
-            if (this.tile == 18) {
-                return true;
-            }
-        }
-    }
-
     pushClone(layers) {
         this.cloneToPush = this.getCloneToPush();
 
@@ -223,6 +214,16 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         return null;
+    }
+
+    isAtPoint(x, y) {
+        return this.mapX == x && this.mapY == y;
+    }
+
+    isCloneAtPoint(x, y) {
+        if (!this.scene.clone) return false;
+
+        return this.scene.clone.mapX == x && this.scene.clone.mapY == y;
     }
 
     resetPosition(x, y) {

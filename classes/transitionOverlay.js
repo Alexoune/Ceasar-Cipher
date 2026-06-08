@@ -1,12 +1,12 @@
 export default class TransitionOverlay extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, alpha) {
+    constructor(scene, x, y, alpha, depth) {
         super(scene, x, y, 'black');
 
         this.scene = scene;
         this.scene.add.existing(this);
 
         this.setScale(3);
-        this.setDepth(100000000000000000000000000000000);
+        this.setDepth(depth);
         this.setAlpha(alpha);
 
         this.isShown;

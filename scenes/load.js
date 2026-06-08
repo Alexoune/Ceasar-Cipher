@@ -24,6 +24,7 @@ export default class AboutUs extends Phaser.Scene {
 
         this.load.spritesheet('doors', 'assets/door_animations.png', { frameWidth:34, frameHeight:34});
         this.load.spritesheet('buttons', 'assets/button_frames.png', { frameWidth:34, frameHeight:34});
+        this.load.spritesheet('portals', 'assets/portal_animations.png', { frameWidth:256, frameHeight:256});
 
         this.load.image('night_sky', 'assets/night_sky.png');
         this.load.image('front_cloud1', 'assets/front_cloud1.png');
@@ -182,6 +183,23 @@ export default class AboutUs extends Phaser.Scene {
             frames: this.anims.generateFrameNumbers('doors', { start: 13, end: 17 }),
             frameRate: 8,
             repeat: 0
+        });
+
+        // Animation portails
+        this.anims.create({
+            key: 'blue_portal',
+            frames: this.anims.generateFrameNumbers('portals', { start: 0, end: 6 }),
+            frameRate: 4,
+            repeat: 0,
+            yoyo: true
+        });
+
+        this.anims.create({
+            key: 'purple_portal',
+            frames: this.anims.generateFrameNumbers('portals', { start: 8, end: 14 }),
+            frameRate: 4,
+            repeat: 0,
+            yoyo: true
         });
 
 

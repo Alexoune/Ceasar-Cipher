@@ -48,7 +48,7 @@ export default class AboutUs extends Phaser.Scene {
         this.engineText.drawPhrase(382, 176, "copilot", 0);
 
 
-        this.black = new TransitionOverlay(this, 0, 0, 1);
+        this.black = new TransitionOverlay(this, 0, 0, 1, 1000000000000000000000000000000000000000);
         this.black.setScale(10);
 
         this.entered = false;

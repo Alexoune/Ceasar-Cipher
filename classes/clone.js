@@ -14,8 +14,8 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
         this.scene.physics.add.existing(this);
         this.setCollideWorldBounds(true);
 
-        this.body.setSize(8,8);
-        this.body.setOffset(this.displayWidth/4 + 2, this.displayHeight/2 + 1); 
+        this.body.setSize(10,10);
+        this.body.setOffset(this.displayWidth/4 + 1, this.displayHeight/2 + 1);
 
         this.setScale(4/3);
 
@@ -137,16 +137,6 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
                 }
             }
         }
-    }
-
-    isOnExit(layers) {
-        for (let layer of layers) {
-            this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
-
-            if (this.tile == 19) {
-                return true;
-            }
-        }    
     }
    
 }
