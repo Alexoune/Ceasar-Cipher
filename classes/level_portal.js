@@ -1,6 +1,8 @@
+const TILE_LENGTH = 32;
+
 export default class Portal extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y, idx) {
-        super(scene, x, y, 'portals', 0);
+        super(scene, x*TILE_LENGTH + 16, y*TILE_LENGTH + 16, 'portals', 0);
 
         this.scene = scene;
         this.scene.add.existing(this);

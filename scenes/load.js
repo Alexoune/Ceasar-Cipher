@@ -203,7 +203,7 @@ export default class AboutUs extends Phaser.Scene {
         });
 
 
-        this.scene.switch('menuScreen');
+        this.scene.switch('endCredit');
     }
 
 }

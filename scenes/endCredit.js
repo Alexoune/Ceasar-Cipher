@@ -17,9 +17,6 @@ export default class EndCredit extends Phaser.Scene {
 
         this.startWaitTime = 0;
 
-        //this.cloud = this.add.image(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 'front_cloud');
-        //this.cloud.setScale(2);
-
         this.fr_4 = this.add.tileSprite(0, -SCREEN_HEIGHT + SCREEN_HEIGHT/2 + 375, SCREEN_WIDTH, SCREEN_HEIGHT, 'night_back_city').setScale(1.5);
         this.fr_4.setOrigin(0, 0);
         this.fr_4.setScrollFactor(0);
@@ -38,30 +35,96 @@ export default class EndCredit extends Phaser.Scene {
 
         this.letterList = "abcdefghijklmnopqrstuvwxyz ,.'?!éèê-àâôùûç";
         this.letterGroup = this.add.group();
-        //this.letterGroup.clear(true, true);
 
         this.letterLength = 6;
 
         this.endMusic = this.sound.add('songCredits', {
+            rate: 1.0,
             volume: 0.5 
         });
 
+        this.rate = this.endMusic.rate;
+
         this.endMusic.play();
 
-        /*this.blackOverlay = new TransitionOverlay(this, 240, 160, 1);
+        const delText = 6000;
+        const delBwtn = 8000;
 
-        this.time.delayedCall(3000, () => {
-            this.blackOverlay.fadeIn(4000);
-        });*/
+        this.entries = [
+            { t:       0, text: "bande-son",            x: "center", y: 16 },
+            { t: delText, text: "alfred lajeunesse",    x: 32,       y: 80 },
+            { t: delText, clear: true },
+
+            { t: delBwtn, text: "code",                 x: "center", y: 16 },
+            { t: delText, text: "alexy rasavady",       x: 32,       y: 80 },
+            { t: delText, text: "alfred lajeunesse",    x: 32,       y: 128 },
+            { t: delText, clear: true },
+
+            { t: delBwtn, text: "conception des niveaux", x: "center", y: 16 },
+            { t: delText, text: "lorick breton",        x: 32,       y: 80 },
+            { t: delText, text: "félix bolduc",         x: 32,       y: 128 },
+            { t: delText, clear: true },
+
+            { t: delBwtn, text: "visuels",              x: "center", y: 16 },
+            { t: delText, text: "félix bolduc",         x: 32,       y: 80 },
+            { t: delText, text: "alexy rasavady",       x: 32,       y: 128 },
+            { t: delText, clear: true },
+
+            { t: delBwtn, text: "tests",                x: "center", y: 16 },
+            { t: delText, text: "lorick breton",        x: 32,       y: 80 },
+            { t: delText, text: "alexy rasavady",       x: 32,       y: 128 },
+            { t: delText, text: "félix bolduc",         x: 32,       y: 176 },
+            { t: delText, text: "alfred lajeunesse",    x: 32,       y: 224 },
+            { t: delText, clear: true },
+
+            { t: delBwtn, text: "musiques avec droits d'auteur",     x: "center", y: 16 },
+            { t: delText, text: "song of the century - green day",   x: 32,       y: 80 },
+            { t: delText, text: "last night on earth - green day",   x: 32,       y: 128 },
+            { t: delText, clear: true },
+
+            { t: delBwtn, text: "remerciements",        x: "center", y: 16 },
+            { t: delText, text: "corinne philippon",    x: 32,       y: 80 },
+            { t: delText, text: "william desmarais",    x: 32,       y: 128 },
+            { t: delText, text: "loic fillion",         x: 32,       y: 176 },
+            { t: delText, text: "copilot",              x: 32,       y: 224 },
+            { t: delText, clear: true },
+        ];
+
+        this.blackOverlay = new TransitionOverlay(this, 240, 160, 1);
+
+        this.time.delayedCall(3000/this.rate, () => {
+            this.blackOverlay.fadeIn(10000/this.rate);
+
+            this.credits(13000/this.rate);
+        });
 
         this.engineText = new EngineText(this);
-
-        /*this.engineText.drawPhrase(10, 10, "veuillez me serrer la pogne, dont!", 50);
-
-        this.time.delayedCall(4000, () => {
-            this.engineText.clearLetters();
-        });*/
         
+    }
+
+    credits(delay) {
+        this.text;
+        this.xPos;
+
+        this.current = 0;
+
+        for (let entry of this.entries) {
+            this.current += entry.t;
+
+            this.time.delayedCall(this.current/this.rate + delay, () => {
+                if (entry.clear) {
+                    this.engineText.clearLetters();
+                    return;
+                }
+
+                this.text = entry.text;
+                if (entry.x == 'center') this.xPos = SCREEN_WIDTH/2 - this.text.length*(this.letterLength + 1);
+                else this.xPos = entry.x;
+
+                this.engineText.drawPhrase(this.xPos, entry.y, this.text, 6);
+            });
+        }
+
     }
 
     update(time, delta) {

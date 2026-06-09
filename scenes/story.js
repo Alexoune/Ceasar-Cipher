@@ -1,5 +1,6 @@
 import Player from "../classes/player.js";
 import Clone from "../classes/clone.js";
+import Portal from "../classes/level_portal.js";
 
 import TransitionOverlay from "../classes/transitionOverlay.js";
 import EngineText from '../classes/engineText.js';
@@ -18,12 +19,7 @@ export default class Story extends Phaser.Scene {
 
         this.tile;
 
-        this.canPlay = false;
-        this.isGameOver = false;
-        this.isIntro = true;
-
         this.currentLevel;
-        this.entered = false;
 
         this.cloneLateFactor;
 
@@ -38,11 +34,17 @@ export default class Story extends Phaser.Scene {
         this.spawning = 1;
     }
 
-    introScene() {
-        this.setup(this.currentLevel);
-        this.player.update(0, this.layerList);
+    init(data) {
+        this.currentLevel = data.levelKey;
+        if (this.currentLevel == null) {
+            this.currentLevel = 1;
+        }
+        
+        this.isIntro = data.isIntro;
+    }
 
-        this.blackOverlay.setAlpha(1);
+    introScene() {
+        this.player.update(0, this.layerList);
 
         this.time.delayedCall(3000, () => {
             this.startMusic.play();
@@ -66,15 +68,13 @@ export default class Story extends Phaser.Scene {
 
             this.time.delayedCall(26000, () => {
                 this.startMusic.stop();
-                this.isIntro = true;
-                this.entered = true;
                 this.canPlay = true;
             });
         });
 
     }
 
-    gameOverScene() {
+    pauseScene() {
         this.engineText.clearLetters()
         
         this.canPlay = false;
@@ -99,14 +99,14 @@ export default class Story extends Phaser.Scene {
             this.engineText.drawKey(16, 72, 2);
             this.engineText.drawPhrase(42, 78, "recommencer", 0);
 
-            this.isGameOver = true;
+            this.isPause = true;
 
         });
 
     }
 
     restartScene() {
-        this.isGameOver = false;
+        this.isPause = false;
 
         this.engineText.clearLetters();
 
@@ -118,14 +118,7 @@ export default class Story extends Phaser.Scene {
         }
 
         this.time.delayedCall(2000, () => {
-            this.player.resetPosition(this.startX, this.startY);
-            this.player.cloneCount = 0;
-            moveInputs.length = 0;
-            
-            this.cloneGroup.clear(true, true);
-            this.cloneList.length = 0;
-
-            this.g.clear();
+            this.reset();
         });
 
         this.time.delayedCall(3000, () => {
@@ -139,7 +132,7 @@ export default class Story extends Phaser.Scene {
     }
 
     continueScene() {
-        this.isGameOver = false;
+        this.isPause = false;
 
         this.engineText.clearLetters();
 
@@ -157,8 +150,8 @@ export default class Story extends Phaser.Scene {
         });
     }
 
-    exitScene() {
-        this.isGameOver = false;
+    exitScene(withStatic) {
+        this.isPause = false;
 
         this.engineText.clearLetters();
 
@@ -173,7 +166,8 @@ export default class Story extends Phaser.Scene {
             this.reset();
 
             this.time.delayedCall(50, () => {
-                this.entered = false;
+                this.scene.restart({ levelKey: this.currentLevel, isIntro: 10 });
+
                 this.scene.switch('menuScreen');
             });
         });
@@ -184,37 +178,77 @@ export default class Story extends Phaser.Scene {
 
         this.time.delayedCall(2500, () => {
             this.canPlay = true;
-            this.entered = true;
         });
     }
 
-    reset() {
-        this.layerList.length = 0
+    successScene() {
+        this.canPlay = false;
 
+        this.engineText.clearLetters();
+        this.g.clear();
+
+        this.playerPortal.appear();
+        this.clonePortal.appear();
+
+        this.time.delayedCall(1500, () => {
+            this.player.setAlpha(0);
+            this.reset();
+        });
+
+        this.time.delayedCall(3500, () => {
+            this.engineText.drawKey(16, 12, 0);
+            this.engineText.drawPhrase(42, 16, "quitter", 0);
+
+            this.engineText.drawKey(16, 42, 1);
+            this.engineText.drawPhrase(42, 48, "poursuivre", 0);
+
+            this.isEndLevel = true;
+        });
+    }
+
+    changeLevelScene() {
+        this.engineText.clearLetters();
+
+        this.blackOverlay.fadeOut(2000);
+
+        this.time.delayedCall(2500, () => {
+            this.currentLevel += 1;
+            this.scene.restart({ levelKey: this.currentLevel, isIntro: 10 });
+        });
+
+    }
+
+    exitWhenDoneScene() {
+        this.engineText.clearLetters();
+
+        this.blackOverlay.fadeOut(2000);
+
+        this.time.delayedCall(2500, () => {
+            this.currentLevel += 1;
+            this.scene.restart({ levelKey: this.currentLevel, isIntro: 10 });
+            this.scene.switch('menuScreen');
+        });
+
+    }
+
+    reset() {
+        this.player.resetPosition(this.startX, this.startY);
         this.player.cloneCount = 0;
+        this.player.resetClone()
         moveInputs.length = 0;
         
         this.cloneGroup.clear(true, true);
         this.cloneList.length = 0;
 
         this.g.clear();
-        
-        this.cloneLateFactor = null;
 
-        this.startX = null;
-        this.startY = null;
-
-        this.exit1X = null;
-        this.exit1Y = null;
-        this.exit2X = null;
-        this.exit2Y = null;
-    
     }
 
     setup(level) {
-        this.currentLevel = level;
+        this.blackOverlay = new TransitionOverlay(this, 240, 160, 0, 1000000000);
+        this.engineText = new EngineText(this);
 
-        this.map = this.make.tilemap({key: level});
+        this.map = this.make.tilemap({key: `level${level}`});
         this.tileset = this.map.addTilesetImage('spritefusion', 'tileset');
 
         this.background = this.map.createDynamicLayer('Background', this.tileset, 0, 0);
@@ -234,15 +268,22 @@ export default class Story extends Phaser.Scene {
 
         this.exit1X = this.map.layers[0].properties[0].exit1X;
         this.exit1Y = this.map.layers[0].properties[0].exit1Y;
+        this.playerPortal = new Portal(this, this.exit1X, this.exit1Y, 0);
+
         this.exit2X = this.map.layers[0].properties[0].exit2X;
         this.exit2Y = this.map.layers[0].properties[0].exit2Y;
+        this.clonePortal = new Portal(this, this.exit2X, this.exit2Y, 1);
 
-        this.player.resetPosition(this.startX, this.startY);
+        this.player = new Player(this, this.startX, this.startY);
         this.physics.add.collider(this.player, this.ground);
         this.physics.add.collider(this.player, this.foreground);
         moveInputs.length = 0;
 
-        this.static.setPosition(this.player.x, this.player.y);
+        this.static = this.add.sprite(this.player.x, this.player.y, 'lapin_game_over')
+            .setScale(4/3)
+            .setAlpha(0)
+            .setDepth(this.blackOverlay.depth + 1);
+        this.static.anims.play('lapin_game_over', true);
 
         this.cloneLateFactor = this.map.layers[0].properties[0].cloneLateFactor;
         this.player.cloneLateFactor = this.cloneLateFactor;
@@ -250,6 +291,7 @@ export default class Story extends Phaser.Scene {
         this.player.startY = this.startY;
 
         this.cloneGroup = this.add.group();
+        this.cloneList = [];
         this.physics.add.collider(this.cloneGroup, this.ground);
         this.physics.add.collider(this.cloneGroup, this.foreground);
 
@@ -284,20 +326,11 @@ export default class Story extends Phaser.Scene {
     }
 
     create() {
+        this.setup(this.currentLevel);
+
+        this.blackOverlay.setAlpha(1);
+
         this.keys = new Keys(this);
-
-        this.blackOverlay = new TransitionOverlay(this, 240, 160, 1);
-        this.engineText = new EngineText(this);
-
-        this.player = new Player(this, 0, 0);
-        this.cloneGroup = this.add.group();
-        this.cloneList = [];
-
-        this.static = this.add.sprite(0, 0, 'lapin_game_over')
-            .setScale(4/3)
-            .setAlpha(0)
-            .setDepth(this.blackOverlay.depth + 1);
-        this.static.anims.play('lapin_game_over', true);
 
         this.startMusic = this.sound.add('songStart', {
             volume: 0.5 
@@ -312,9 +345,14 @@ export default class Story extends Phaser.Scene {
             loop: true
         });
 
-        this.currentLevel = 'level1';
+        this.canPlay = false;
+        this.isPause = false;
+        this.isEndLevel = false;
 
-        if (!this.isIntro) this.introScene();
+        //if (this.isIntro == null) this.introScene();
+        //else this.continueScene();
+
+        this.reEnterScene();
 
     }
 
@@ -338,13 +376,13 @@ export default class Story extends Phaser.Scene {
     }
 
     update(time) {
-        if (!this.entered && this.isIntro) {
-            this.setup(this.currentLevel);
-            this.player.update(0, this.layerList);
-            this.reEnterScene();
+        if (this.isEndLevel) {
+            if (this.keys.isEnter()) this.changeLevelScene();
+            if (this.keys.isEsc()) this.exitWhenDoneScene();
+            return;
         }
 
-        if (this.isGameOver) {
+        if (this.isPause) {
             if (this.keys.isEnter()) this.continueScene();
             if (this.keys.isR()) this.restartScene();
             if (this.keys.isEsc()) this.exitScene();
@@ -358,7 +396,11 @@ export default class Story extends Phaser.Scene {
             this.engineText.drawKey(2, 2, 0);
 
             if (this.keys.isEsc()) {
-                this.gameOverScene();
+                this.pauseScene();
+            }
+
+            if (this.player.isAtPoint(this.exit1X, this.exit1Y) && this.player.isCloneAtPoint(this.exit2X, this.exit2Y)) {
+                this.successScene();
             }
         }
 
