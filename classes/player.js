@@ -81,6 +81,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.yAxis = (+this.keys.isDown()) - (+this.keys.isUp());
 
         if (this.xAxis != 0 || this.yAxis != 0) {
+            if (this.xAxis != 0 && this.yAxis != 0) this.yAxis = 0;
+
             if (!this.pressed) {
                 this.pressed = true;
                 this.moving = true;

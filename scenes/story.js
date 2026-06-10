@@ -448,7 +448,9 @@ export default class Story extends Phaser.Scene {
             this.engineText.drawKey(2, 2, 0);
 
             if (this.keys.isEsc()) {
-                this.pauseScene();
+                if (!this.player.moving) {
+                    this.pauseScene();
+                }
             }
 
             if (this.player.isAtPoint(this.exit1X, this.exit1Y) && this.player.isCloneAtPoint(this.exit2X, this.exit2Y)) {
