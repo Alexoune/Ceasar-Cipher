@@ -9,13 +9,13 @@ export default class EndCredit extends Phaser.Scene {
         super('endCredit');
     }
 
-    create() {    
+    create() {   
+        this.sound.stopAll(); 
+        
         this.bg_1 = this.add.image(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 'night_sky');
         this.bg_1.setScale(2);
 
         this.scrollX = 100;
-
-        this.startWaitTime = 0;
 
         this.fr_4 = this.add.tileSprite(0, -SCREEN_HEIGHT + SCREEN_HEIGHT/2 + 375, SCREEN_WIDTH, SCREEN_HEIGHT, 'night_back_city').setScale(1.5);
         this.fr_4.setOrigin(0, 0);
@@ -47,8 +47,8 @@ export default class EndCredit extends Phaser.Scene {
 
         this.endMusic.play();
 
-        const delText = 6000;
-        const delBwtn = 8000;
+        const delText = 5000;
+        const delBwtn = 8500;
 
         this.entries = [
             { t:       0, text: "bande-son",            x: "center", y: 16 },
@@ -57,40 +57,45 @@ export default class EndCredit extends Phaser.Scene {
 
             { t: delBwtn, text: "code",                 x: "center", y: 16 },
             { t: delText, text: "alexy rasavady",       x: 32,       y: 80 },
-            { t: delText, text: "alfred lajeunesse",    x: 32,       y: 128 },
+            { t: delText, text: "alfred lajeunesse",    x: 32,       y: 112 },
             { t: delText, clear: true },
 
             { t: delBwtn, text: "conception des niveaux", x: "center", y: 16 },
             { t: delText, text: "lorick breton",        x: 32,       y: 80 },
-            { t: delText, text: "félix bolduc",         x: 32,       y: 128 },
+            { t: delText, text: "félix bolduc",         x: 32,       y: 112 },
             { t: delText, clear: true },
 
             { t: delBwtn, text: "visuels",              x: "center", y: 16 },
             { t: delText, text: "félix bolduc",         x: 32,       y: 80 },
-            { t: delText, text: "alexy rasavady",       x: 32,       y: 128 },
+            { t: delText, text: "alexy rasavady",       x: 32,       y: 112 },
             { t: delText, clear: true },
 
             { t: delBwtn, text: "tests",                x: "center", y: 16 },
             { t: delText, text: "lorick breton",        x: 32,       y: 80 },
-            { t: delText, text: "alexy rasavady",       x: 32,       y: 128 },
-            { t: delText, text: "félix bolduc",         x: 32,       y: 176 },
-            { t: delText, text: "alfred lajeunesse",    x: 32,       y: 224 },
+            { t: delText, text: "alexy rasavady",       x: 32,       y: 112 },
+            { t: delText, text: "félix bolduc",         x: 32,       y: 144 },
+            { t: delText, text: "alfred lajeunesse",    x: 32,       y: 176 },
             { t: delText, clear: true },
 
             { t: delBwtn, text: "musiques avec droits d'auteur",     x: "center", y: 16 },
             { t: delText, text: "song of the century - green day",   x: 32,       y: 80 },
-            { t: delText, text: "last night on earth - green day",   x: 32,       y: 128 },
+            { t: delText, text: "last night on earth - green day",   x: 32,       y: 112 },
+            { t: delText, text: "mr brightside - the killers",       x: 32,       y: 144 },
             { t: delText, clear: true },
 
-            { t: delBwtn, text: "remerciements",        x: "center", y: 16 },
+            { t: delBwtn, text: "remerciements à",      x: "center", y: 16 },
             { t: delText, text: "corinne philippon",    x: 32,       y: 80 },
-            { t: delText, text: "william desmarais",    x: 32,       y: 128 },
+            { t: delText, text: "william desmarais",    x: 32,       y: 112 },
+            { t: delText, text: "simon joly",           x: 32,       y: 144 },
             { t: delText, text: "loic fillion",         x: 32,       y: 176 },
-            { t: delText, text: "copilot",              x: 32,       y: 224 },
+            { t: delText, text: "arthur larente",       x: 32,       y: 208 },
+            { t: delText, text: "copilot",              x: 32,       y: 240 },
             { t: delText, clear: true },
+
+            { t: delText, text: "merci d'avoir joué",   x: "center", y: SCREEN_HEIGHT/2 }
         ];
 
-        this.blackOverlay = new TransitionOverlay(this, 240, 160, 1);
+        this.blackOverlay = new TransitionOverlay(this, 240, 160, 1, 999999999999999999999999999999999999999);
 
         this.time.delayedCall(3000/this.rate, () => {
             this.blackOverlay.fadeIn(10000/this.rate);
@@ -98,8 +103,18 @@ export default class EndCredit extends Phaser.Scene {
             this.credits(13000/this.rate);
         });
 
+        this.time.delayedCall(216000/this.rate, () => {
+            this.blackOverlay.fadeOut(20000/this.rate);
+        });
+
+        this.time.delayedCall(236000/this.rate, () => {
+            this.engineText.clearLetters();
+            this.scene.restart();
+            this.scene.switch('menuScreen');
+        });
+
         this.engineText = new EngineText(this);
-        
+
     }
 
     credits(delay) {

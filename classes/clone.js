@@ -86,6 +86,11 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
             this.mapY = this.lastMapY;
         }
 
+        if (this.mapX < 0 || this.mapX > 22 || this.mapY < 0 || this.mapY > 14) {
+            this.mapX = this.lastMapX;
+            this.mapY = this.lastMapY;
+        }
+
         this.isBashed = false;
         this.isCollide = false;
 
@@ -125,6 +130,8 @@ export default class Clone extends Phaser.Physics.Arcade.Sprite {
     }
 
     pressButtonCheck(layers) {
+        if (this.mapX < 0 || this.mapX > 22 || this.mapY < 0 || this.mapY > 14) return;
+
         for (let layer of layers) {
             this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
 

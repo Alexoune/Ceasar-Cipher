@@ -58,6 +58,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.pushX;
         this.pushY;
 
+        this.clamp = (val, min, max) => Math.min(Math.max(val, min), max);
+
     }
 
     update(time, layers) {
@@ -154,6 +156,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     pressButtonCheck(layers) {
+        if (this.mapX < 0 || this.mapX > 22 || this.mapY < 0 || this.mapY > 14) return;
+
         for (let layer of layers) {
             this.tile = layer.layer.data[this.mapY][this.mapX].index - 1;
 

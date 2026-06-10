@@ -5,6 +5,7 @@ export default class AboutUs extends Phaser.Scene {
 
     preload() {
         this.load.image('Menu', 'assets/scenes/menuScreen.png');
+        this.load.image('titre', 'assets/titre.png');
         this.load.image('FlecheGauche', 'assets/scenes/flecheGauche.png');
         this.load.image('FlecheDroite', 'assets/scenes/flecheDroite.png');
         this.load.image('FlecheBas', 'assets/scenes/flecheBas.png');
@@ -21,6 +22,7 @@ export default class AboutUs extends Phaser.Scene {
 
         this.load.spritesheet('letters', 'assets/letters.png', { frameWidth:6, frameHeight:6});
         this.load.spritesheet('keys', 'assets/inputs_logo.png', { frameWidth:12, frameHeight:12});
+        this.load.spritesheet('menuButtons', 'assets/menu_buttons.png', { frameWidth:100, frameHeight:18});
 
         this.load.spritesheet('doors', 'assets/door_animations.png', { frameWidth:34, frameHeight:34});
         this.load.spritesheet('buttons', 'assets/button_frames.png', { frameWidth:34, frameHeight:34});
@@ -39,9 +41,16 @@ export default class AboutUs extends Phaser.Scene {
 
         this.load.tilemapTiledJSON('level1', 'assets/tilemaps/level1.json');
         this.load.tilemapTiledJSON('level2', 'assets/tilemaps/level2.json');
+        this.load.tilemapTiledJSON('level3', 'assets/tilemaps/level3.json');
+        this.load.tilemapTiledJSON('level4', 'assets/tilemaps/level4.json');
+        this.load.tilemapTiledJSON('level5', 'assets/tilemaps/level5.json');
+
+        this.load.audio('menuMusic', 'assets/musiques/Simon-Jeu.wav');
+        this.load.audio('playMusic', 'assets/musiques/JeuMP3.mp3');
 
         this.load.audio('songStart', 'assets/musiques/Song-of-the-Century.mp3');
         this.load.audio('songCredits', 'assets/musiques/Last-Night-on-Earth.mp3');
+        this.load.audio('songEndLevel', 'assets/musiques/mrbrightside.mp3');
 
         this.load.audio('suddenStop', 'assets/sound_effects/sudden-stop.mp3');
         this.load.audio('game_over_static', 'assets/sound_effects/radio-static-cb.mp3');
@@ -203,7 +212,7 @@ export default class AboutUs extends Phaser.Scene {
         });
 
 
-        this.scene.switch('endCredit');
+        this.scene.switch('titre');
     }
 
 }

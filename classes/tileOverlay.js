@@ -77,7 +77,7 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
         }
 
         if (this.tile == 8 || this.tile == 9) {
-            let door = new Door(this.scene, this.gridX, this.gridY, doorKeyData.length, this.tile);
+            let door = new Door(this.scene, this.gridX, this.gridY, doorKeyData.length, this.tile, layer);
             doorKeyData[doorKeyData.length - 1].push(door);
 
             this.placeDoorMode = false;
@@ -202,6 +202,12 @@ export default class TileOverlay extends Phaser.Physics.Arcade.Sprite {
             return
         }
         
+    }
+
+    resetAllDoors() {
+        for (let door of doorKeyData) {
+            door[1].resetDoor();
+        }
     }
 
     update(time, layer = this.scene.layerList[this.layer]) {

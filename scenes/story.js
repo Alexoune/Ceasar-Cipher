@@ -13,6 +13,8 @@ const TILE_LENGTH = 32;
 const MAP_OFFSET_X = 16;
 const MAP_OFFSET_Y = 16;
 
+const MAX_LEVELS = 5;
+
 export default class Story extends Phaser.Scene {
     constructor() {
         super('story');
@@ -68,6 +70,7 @@ export default class Story extends Phaser.Scene {
 
             this.time.delayedCall(26000, () => {
                 this.startMusic.stop();
+                this.backMusic.play();
                 this.canPlay = true;
             });
         });
@@ -78,6 +81,8 @@ export default class Story extends Phaser.Scene {
         this.engineText.clearLetters()
         
         this.canPlay = false;
+
+        this.backMusic.stop();
 
         this.static.setPosition(this.player.x, this.player.y);
         this.static.setAlpha(1);
@@ -125,6 +130,7 @@ export default class Story extends Phaser.Scene {
             this.blackOverlay.fadeIn(2000);
 
             this.time.delayedCall(3000, () => {
+                this.backMusic.play();
                 this.canPlay = true;
             });
         });
@@ -146,6 +152,7 @@ export default class Story extends Phaser.Scene {
         }
 
         this.time.delayedCall(2500, () => {
+            this.backMusic.play();
             this.canPlay = true;
         });
     }
@@ -178,6 +185,7 @@ export default class Story extends Phaser.Scene {
 
         this.time.delayedCall(2500, () => {
             this.canPlay = true;
+            this.backMusic.play();
         });
     }
 
@@ -190,12 +198,33 @@ export default class Story extends Phaser.Scene {
         this.playerPortal.appear();
         this.clonePortal.appear();
 
+        for (let i = 0; i < 1500; i++) {
+            this.time.delayedCall(i, () => {
+                this.backMusic.setVolume(0.5 - i/(2*1500));
+            });
+        }
+
         this.time.delayedCall(1500, () => {
+            this.backMusic.stop();
+            this.songEndLevel.play();
             this.player.setAlpha(0);
             this.reset();
         });
 
         this.time.delayedCall(3500, () => {
+            if (this.currentLevel == MAX_LEVELS) {
+                this.blackOverlay.fadeOut(2000);
+
+                this.time.delayedCall(2500, () => {
+                    this.currentLevel = 1;
+                    this.scene.restart({ levelKey: this.currentLevel, isIntro: 0 });
+
+                    this.scene.switch('endCredit');
+                });
+
+                return;
+            }
+
             this.engineText.drawKey(16, 12, 0);
             this.engineText.drawPhrase(42, 16, "quitter", 0);
 
@@ -211,8 +240,15 @@ export default class Story extends Phaser.Scene {
 
         this.blackOverlay.fadeOut(2000);
 
+        for (let i = 0; i < 2500; i++) {
+            this.time.delayedCall(i, () => {
+                this.songEndLevel.setVolume(1 - i/(2*2500));
+            });
+        }
+
         this.time.delayedCall(2500, () => {
             this.currentLevel += 1;
+
             this.scene.restart({ levelKey: this.currentLevel, isIntro: 10 });
         });
 
@@ -222,6 +258,12 @@ export default class Story extends Phaser.Scene {
         this.engineText.clearLetters();
 
         this.blackOverlay.fadeOut(2000);
+
+        for (let i = 0; i < 2500; i++) {
+            this.time.delayedCall(i, () => {
+                this.songEndLevel.setVolume(1 - i/(2*2500));
+            });
+        }
 
         this.time.delayedCall(2500, () => {
             this.currentLevel += 1;
@@ -326,6 +368,8 @@ export default class Story extends Phaser.Scene {
     }
 
     create() {
+        this.sound.stopAll();
+
         this.setup(this.currentLevel);
 
         this.blackOverlay.setAlpha(1);
@@ -345,14 +389,22 @@ export default class Story extends Phaser.Scene {
             loop: true
         });
 
+        this.backMusic = this.sound.add('playMusic', {
+            volume: 0.5,
+            loop: true
+        });
+
+        this.songEndLevel = this.sound.add('songEndLevel', {
+            volume: 1,
+            loop: true
+        });
+
         this.canPlay = false;
         this.isPause = false;
         this.isEndLevel = false;
 
-        //if (this.isIntro == null) this.introScene();
-        //else this.continueScene();
-
-        this.reEnterScene();
+        if (this.isIntro == null) this.introScene();
+        else this.reEnterScene();
 
     }
 

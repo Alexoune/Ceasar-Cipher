@@ -36,6 +36,8 @@ export default class LevelBuilder extends Phaser.Scene {
     }
 
     create() {    
+        this.sound.stopAll();
+
         this.map = this.make.tilemap({key: 'build'});
         this.tileset = this.map.addTilesetImage('spritefusion', 'tileset');
 
@@ -91,6 +93,14 @@ export default class LevelBuilder extends Phaser.Scene {
 
         this.tileOverlay = new TileOverlay(this, 0, 0);
 
+        this.music = this.sound.add('playMusic', {
+            rate: 1.0,
+            volume: 0.5,
+            loop: true
+        });
+
+        this.notPlayed = true;
+
         this.keys = new Keys(this);
 
         this.textLayer = this.add.text(0, 0, "").setDepth(99999999);
@@ -120,6 +130,12 @@ export default class LevelBuilder extends Phaser.Scene {
     R = Réinitialiser le joueur/clone
 
     Q = Copier le niveau dans le presse-papier
+
+
+  - Points techniques -
+    Les collisions sur le "layer" 1 seront toujours désactivées
+    Un seul téléporteur de chaque couleur peut être posé
+    Les portes peuvent être placés seulement après avoir placé un bouton de sa couleur
         `);
     }
 
@@ -238,6 +254,11 @@ export default class LevelBuilder extends Phaser.Scene {
     }
 
     update(time) {
+        if (this.notPlayed) {
+            this.music.play();
+            this.notPlayed = false;
+        }
+
         this.textLayer.setText(`Layer: ${this.tileOverlay.layer}`);
         this.textAutotile.setText(`Autotile: ${this.tileOverlay.autotile == 1}`);
         this.textStart.setText(`Start coords: ${this.startX}, ${this.startY}`);
@@ -287,6 +308,8 @@ export default class LevelBuilder extends Phaser.Scene {
             this.player.resetClone();
             this.cloneGroup.clear(true, true);
             this.cloneList.length = 0;
+
+            this.tileOverlay.resetAllDoors();
 
             this.g.clear();
         }
